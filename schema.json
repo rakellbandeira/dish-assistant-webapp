@@ -1,0 +1,267 @@
+{
+  "version": "1.0",
+  "database": "---",
+  "description": "Database Schema for Dish Assistant Web App",
+  "collections": {
+    "user": {
+      "description": "User accounts and authentication",
+      "schema": {
+        "type": "object",
+        "required": ["id", "email", "password_hash"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique user identifier"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User email address (unique)"
+          },
+          "password_hash": {
+            "type": "string",
+            "description": "Hashed password"
+          },
+          "username": {
+            "type": "string",
+            "description": "Display name for the user"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "menu": {
+      "description": "Restaurant menus uploaded by users",
+      "schema": {
+        "type": "object",
+        "required": ["id", "user_id", "menu_text"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "Reference to user.id"
+          },
+          "restaurant_name": {
+            "type": "string",
+            "description": "Name of the restaurant"
+          },
+          "restaurant_place": {
+            "type": "string",
+            "description": "Location of the restaurant"
+          },
+          "menu_text": {
+            "type": "string",
+            "description": "Raw menu text uploaded by user"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "ai_recommendation": {
+      "description": "AI-generated recommendations for a specific menu",
+      "schema": {
+        "type": "object",
+        "required": ["id", "user_id", "menu_id", "created_at"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "Reference to user.id"
+          },
+          "menu_id": {
+            "type": "string",
+            "description": "Reference to menu.id"
+          },
+          "summary": {
+            "type": "string",
+            "description": "AI-generated explanation of recommendations based on user preferences"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "dish": {
+      "description": "Individual dishes recommended by AI or found on menus",
+      "schema": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ai_recommendation_id": {
+            "type": "string",
+            "description": "Reference to ai_recommendation.id"
+          },
+          "name": {
+            "type": "string",
+            "description": "Dish name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Dish description from menu or AI"
+          },
+          "classification": {
+            "type": "string",
+            "enum": ["familiar", "new"],
+            "description": "Whether dish is familiar to user or new to try"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why this dish is classified as liked/disliked or recommended"
+          },
+          "section": {
+            "type": "string",
+            "enum": ["Appetizers", "Mains", "Desserts", "Beverages", "Side Dishes", "Palate Cleansers", "Fromage", "Petit Fours"],
+            "description": "Menu section (e.g., Appetizers, Mains, Desserts, Beverages)"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "preferences": {
+      "description": "User food preferences, allergies, and dietary restrictions",
+      "schema": {
+        "type": "object",
+        "required": ["id", "user_id"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "Reference to user.id (one-to-one relationship)"
+          },
+          "liked_cuisines": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Cuisines user likes (updated based on feedback)"
+          },
+          "disliked_cuisines": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Cuisines user dislikes (updated based on feedback)"
+          },
+          "liked_flavors": {
+            "type": "array",
+            "items": {"type": "string" },      
+            "description": "Flavors user enjoys"
+          },
+          "disliked_ingredients": {
+            "type": "array",
+            "items": {"type": "string" },
+            "description": "Ingredients user wants to avoid"
+          },
+          "allergies": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Food allergies"
+          },
+          "dietary_restrictions": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Dietary restrictions"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "feedback": {
+      "description": "User feedback on recommended dishes",
+      "schema": {
+        "type": "object",
+        "required": ["id", "user_id", "dish_id", "liked"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "Reference to user.id"
+          },
+          "ai_recommendation_id": {
+            "type": "string",
+            "description": "Reference to ai_recommendation.id (optional)"
+          },
+          "dish_id": {
+            "type": "string",
+            "description": "Reference to dish.id"
+          },
+          "liked": {
+            "type": "boolean",
+            "description": "Whether user liked (true) or disliked (false) the dish"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "indexes": {
+    "user": [
+      { "field": "email", "unique": true },
+      { "field": "created_at" }
+    ],
+    "menu": [
+      { "field": "user_id" },
+      { "field": "created_at" }
+    ],
+    "ai_recommendation": [
+      { "field": "user_id" },
+      { "field": "menu_id" },
+      { "field": "created_at" }
+    ],
+    "dish": [
+      { "field": "ai_recommendation_id" },
+      { "field": "created_at" }
+    ],
+    "preferences": [
+      { "field": "user_id", "unique": true }
+    ],
+    "feedback": [
+      { "field": "user_id" },
+      { "field": "dish_id" },
+      { "field": "ai_recommendation_id" },
+      { "field": "created_at" }
+    ]
+  },
+  "relationships": {
+    "menu_to_user": "many-to-one",
+    "ai_recommendation_to_user": "many-to-one",
+    "ai_recommendation_to_menu": "many-to-one",
+    "dish_to_ai_recommendation": "many-to-one",
+    "preferences_to_user": "one-to-one",
+    "feedback_to_user": "many-to-one",
+    "feedback_to_dish": "many-to-one",
+    "feedback_to_ai_recommendation": "many-to-one"
+  }
+}
