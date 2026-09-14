@@ -1,0 +1,51 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "Menu Schema",
+    "description": "Validation schema for the menus collection - restaurant menus uploaded by users",
+    "required": ["_id", "user_id", "menu_text", "created_at"],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId",
+        "description": "Unique menu document identifier"
+      },
+      "user_id": {
+        "bsonType": "objectId",
+        "description": "Reference to user._id - menu owner"
+      },
+      "restaurant_name": {
+        "bsonType": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "description": "Name of the restaurant",
+        "examples": ["La Bella Italia", "Sakura Sushi"]
+      },
+      "restaurant_place": {
+        "bsonType": "string",
+        "description": "Location/address of the restaurant",
+        "examples": ["123 Main St, New York, NY 10001"]
+      },
+      "menu_text": {
+        "bsonType": "string",
+        "minLength": 10,
+        "description": "Raw menu text uploaded by user (can be OCR'd text, pasted text, or menu content)"
+      },
+      "created_at": {
+        "bsonType": "date",
+        "description": "Menu upload timestamp"
+      }
+    },
+    "additionalProperties": false
+  },
+  "indexes": [
+    {
+      "key": { "user_id": 1, "created_at": -1 }
+    },
+    {
+      "key": { "restaurant_name": 1 }
+    },
+    {
+      "key": { "created_at": -1 }
+    }
+  ]
+}

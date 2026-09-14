@@ -1,0 +1,125 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "Preferences Schema",
+    "description": "Validation schema for the preferences collection",
+    "required": ["_id", "user_id"],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId",
+        "description": "Unique preferences document identifier"
+      },
+      "user_id": {
+        "bsonType": "objectId",
+        "description": "Reference to user._id (one-to-one relationship)"
+      },
+      "liked_cuisines": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "string"
+        },
+        "description": "Array of cuisines user likes (updated based on feedback)",
+        "examples": ["Italian", "Thai", "Japanese"]
+      },
+      "disliked_cuisines": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "string"
+        },
+        "description": "Array of cuisines user dislikes (updated based on feedback)",
+        "examples": ["Fast Food", "Soul Food"]
+      },
+      "liked_flavors": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "object",
+          "properties": {
+            "flavor": {
+              "bsonType": "string",
+              "enum": ["spicy", "sweet", "salty", "sour", "umami", "bitter"]
+            },
+            "intensity": {
+              "bsonType": "string",
+              "enum": ["mild", "moderate", "strong"]
+            }
+          },
+          "required": ["flavor"],
+          "additionalProperties": false
+        },
+        "description": "Flavors user enjoys with preferred intensity"
+      },
+      "disliked_ingredients": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "object",
+          "properties": {
+            "ingredient": {
+              "bsonType": "string"
+            },
+            "reason": {
+              "bsonType": "string"
+            }
+          },
+          "required": ["ingredient"],
+          "additionalProperties": false
+        },
+        "description": "Ingredients user wants to avoid with optional reason"
+      },
+      "allergies": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "object",
+          "properties": {
+            "allergen": {
+              "bsonType": "string"
+            },
+            "severity": {
+              "bsonType": "string",
+              "enum": ["mild", "moderate", "severe"]
+            }
+          },
+          "required": ["allergen", "severity"],
+          "additionalProperties": false
+        },
+        "description": "Food allergies with severity level"
+      },
+      "dietary_restrictions": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "object",
+          "properties": {
+            "restriction": {
+              "bsonType": "string",
+              "enum": ["vegetarian", "vegan", "gluten-free", "kosher", "halal", "keto", "paleo", "dairy-free"]
+            },
+            "notes": {
+              "bsonType": "string"
+            }
+          },
+          "required": ["restriction"],
+          "additionalProperties": false
+        },
+        "description": "Dietary restrictions with optional notes"
+      },
+      "created_at": {
+        "bsonType": "date",
+        "description": "Preferences document creation timestamp"
+      },
+      "updated_at": {
+        "bsonType": "date",
+        "description": "Last preferences update timestamp"
+      }
+    },
+    "additionalProperties": false
+  },
+  "indexes": [
+    {
+      "key": { "user_id": 1 },
+      "unique": true,
+      "sparse": true
+    },
+    {
+      "key": { "updated_at": -1 }
+    }
+  ]
+}

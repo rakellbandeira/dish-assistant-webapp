@@ -1,0 +1,65 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "Dish Schema",
+    "description": "Validation schema for the dish collection - individual dishes from menus or AI recommendations",
+    "required": ["_id", "name", "created_at"],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId",
+        "description": "Unique dish identifier"
+      },
+      "ai_recommendation_id": {
+        "bsonType": "objectId",
+        "description": "Reference to ai_recommendation._id - which recommendation this dish belongs to"
+      },
+      "name": {
+        "bsonType": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "description": "Dish name",
+        "examples": ["Spaghetti Carbonara", "Pad Thai"]
+      },
+      "description": {
+        "bsonType": "string",
+        "description": "Detailed description of the dish from menu or AI",
+        "examples": ["Creamy pasta with pancetta, egg, and Pecorino Romano"]
+      },
+      "classification": {
+        "bsonType": "string",
+        "enum": ["familiar", "new"],
+        "description": "Whether dish is familiar to user (has tried before) or new to try"
+      },
+      "reason": {
+        "bsonType": "string",
+        "description": "Why this dish is classified/recommended - AI explanation for classification",
+        "examples": ["Contains your liked flavor profile (spicy, umami)", "Matches your preferred cuisine"]
+      },
+      "section": {
+        "bsonType": "string",
+        "description": "Menu section this dish belongs to",
+        "enum": ["appetizers", "soups", "salads", "mains", "sides", "desserts", "beverages", "drinks", "other"],
+        "examples": ["mains", "appetizers"]
+      },
+      "created_at": {
+        "bsonType": "date",
+        "description": "Dish record creation timestamp"
+      }
+    },
+    "additionalProperties": false
+  },
+  "indexes": [
+    {
+      "key": { "ai_recommendation_id": 1 }
+    },
+    {
+      "key": { "name": 1 }
+    },
+    {
+      "key": { "section": 1 }
+    },
+    {
+      "key": { "created_at": -1 }
+    }
+  ]
+}

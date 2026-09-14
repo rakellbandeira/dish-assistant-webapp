@@ -1,0 +1,50 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "AI Recommendation Schema",
+    "description": "Validation schema for the ai_recommendation collection - AI-generated recommendations for menus",
+    "required": ["_id", "user_id", "menu_id", "created_at"],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId",
+        "description": "Unique AI recommendation identifier"
+      },
+      "user_id": {
+        "bsonType": "objectId",
+        "description": "Reference to user._id - whose preferences these recommendations are based on"
+      },
+      "menu_id": {
+        "bsonType": "objectId",
+        "description": "Reference to menu._id - which menu these recommendations are for"
+      },
+      "summary": {
+        "bsonType": "string",
+        "minLength": 10,
+        "description": "AI-generated summary/explanation of recommendations based on user preferences",
+        "examples": [
+          "Based on your preference for spicy Italian dishes and vegetarian options, we recommend...",
+          "These selections match your liked cuisines and avoid all your allergies..."
+        ]
+      },
+      "created_at": {
+        "bsonType": "date",
+        "description": "Recommendation generation timestamp"
+      }
+    },
+    "additionalProperties": false
+  },
+  "indexes": [
+    {
+      "key": { "user_id": 1, "created_at": -1 }
+    },
+    {
+      "key": { "menu_id": 1 }
+    },
+    {
+      "key": { "user_id": 1, "menu_id": 1 }
+    },
+    {
+      "key": { "created_at": -1 }
+    }
+  ]
+}
