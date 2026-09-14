@@ -1,0 +1,56 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "User Schema",
+    "description": "Validation schema for the users collection",
+    "required": ["_id", "email", "password_hash", "created_at"],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId",
+        "description": "Unique user identifier"
+      },
+      "email": {
+        "bsonType": "string",
+        "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+        "description": "User email address (unique)",
+        "examples": ["user@example.com"]
+      },
+      "password_hash": {
+        "bsonType": "string",
+        "minLength": 60,
+        "description": "Hashed password (bcrypt format)"
+      },
+      "username": {
+        "bsonType": "string",
+        "minLength": 3,
+        "maxLength": 30,
+        "pattern": "^[a-zA-Z0-9_-]+$",
+        "description": "Display name for the user"
+      },
+      "created_at": {
+        "bsonType": "date",
+        "description": "Account creation timestamp"
+      },
+      "updated_at": {
+        "bsonType": "date",
+        "description": "Last account update timestamp"
+      }
+    },
+    "additionalProperties": false
+  },
+  "indexes": [
+    {
+      "key": { "email": 1 },
+      "unique": true,
+      "sparse": true
+    },
+    {
+      "key": { "username": 1 },
+      "unique": true,
+      "sparse": true
+    },
+    {
+      "key": { "created_at": -1 }
+    }
+  ]
+}
