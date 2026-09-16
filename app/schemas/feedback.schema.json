@@ -1,0 +1,52 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "Feedback Schema",
+    "description": "Validation schema for the feedback collection - user feedback on recommended dishes",
+    "required": ["_id", "user_id", "dish_id", "liked", "created_at"],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId",
+        "description": "Unique feedback document identifier"
+      },
+      "user_id": {
+        "bsonType": "objectId",
+        "description": "Reference to user._id - who gave the feedback"
+      },
+      "ai_recommendation_id": {
+        "bsonType": "objectId",
+        "description": "Reference to ai_recommendation._id (optional) - which recommendation this feedback is for"
+      },
+      "dish_id": {
+        "bsonType": "objectId",
+        "description": "Reference to dish._id - which dish this feedback is about"
+      },
+      "liked": {
+        "bsonType": "bool",
+        "description": "Whether user liked (true) or disliked (false) the dish"
+      },
+      "created_at": {
+        "bsonType": "date",
+        "description": "Feedback submission timestamp"
+      }
+    },
+    "additionalProperties": false
+  },
+  "indexes": [
+    {
+      "key": { "user_id": 1, "created_at": -1 }
+    },
+    {
+      "key": { "dish_id": 1 }
+    },
+    {
+      "key": { "ai_recommendation_id": 1 }
+    },
+    {
+      "key": { "user_id": 1, "liked": 1 }
+    },
+    {
+      "key": { "created_at": -1 }
+    }
+  ]
+}
