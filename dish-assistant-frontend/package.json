@@ -16,8 +16,11 @@
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
-  "devDependencies": {
+    "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^7.0.1",       
+    "@testing-library/react": "^16.3.3",         
+    "@testing-library/user-event": "^14.6.7",    
     "@types/node": "20.19.43",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -25,6 +28,7 @@
     "eslint-config-next": "16.3.5",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",                        
+    "vitest": "^3.2.4"                            
   }
 }
