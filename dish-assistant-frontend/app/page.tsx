@@ -5,29 +5,29 @@ import DishCard from "@/components/ui/DishCard";
 import Button from "@/components/ui/Button";
 
 const results = [
-  { name: "Garlic butter chicken", meta: "25 min · 4 ingredients" },
-  { name: "Spinach and white bean stew", meta: "30 min · 6 ingredients" },
-  { name: "Skillet chicken and greens", meta: "20 min · 5 ingredients" },
+  { name: "Truffle Mushroom Pasta", meta: "Italian · Vegetarian" },
+  { name: "Spicy Tuna Crispy Rice", meta: "Japanese · Spicy" },
+  { name: "Blackened Chicken Sandwich", meta: "American · High protein" },
 ];
 
 const moreIdeas = [
-  { name: "Lemon herb salmon", meta: "20 min · 5 ingredients" },
-  { name: "Roasted veggie grain bowl", meta: "35 min · 7 ingredients" },
-  { name: "One-pan sausage and peppers", meta: "25 min · 5 ingredients" },
+  { name: "Miso Glazed Salmon", meta: "Japanese · High protein" },
+  { name: "Margherita Pizza", meta: "Italian · Vegetarian" },
+  { name: "Steak Frites", meta: "French · Rich & savory" },
 ];
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-neutral font-body">
-      <SiteHeader accountLabel="Sign in" />
+      <SiteHeader/>
 
       <main className="flex flex-1 flex-col items-center px-8 py-16 sm:py-20">
-        <h1 className="max-w-lg text-center font-heading text-4xl font-semibold leading-tight text-error sm:text-5xl">
-          What should I cook tonight?
+        <h1 className="font-heading text-6xl font-bold text-error">
+          Find your next favorite dish
         </h1>
+
         <p className="mt-4 max-w-md text-center text-base text-secondary">
-          Tell me what&apos;s in your fridge and I&apos;ll suggest something
-          worth making.
+          Enter your restaurant of choice and we will suggest a dish for you to try.
         </p>
 
         <form className="mt-8 flex w-full max-w-md items-center gap-2">
