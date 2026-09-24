@@ -6,7 +6,9 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.router import api_router
 from app.core.config import settings
+from app.core.errors import register_exception_handlers
 
 # Configure logging
 logging.basicConfig(
@@ -22,12 +24,12 @@ os.makedirs(settings.log_file.rsplit('/', 1)[0], exist_ok=True)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
 
-    # Startup
+    
     logger.info("Application starting up...")
     
-    yield  # Application is running here
+    yield  
     
-    # Shutdown
+    
     logger.info("Application shutting down...")
 
 
@@ -50,6 +52,11 @@ app.add_middleware(
 
 logger.info(f"✓ CORS configured for origins: {settings.cors_origins}")
 
+# Every error response is {"message": ...}
+register_exception_handlers(app)
+
+# All frontend-facing routes live under /api
+app.include_router(api_router)
 
 
 # ROUTES

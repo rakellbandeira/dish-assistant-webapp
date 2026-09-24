@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+DEFAULT_SECRET_KEY = "change-me-in-production"
+
 class Settings:
 
     # Environment
@@ -25,11 +27,18 @@ class Settings:
     database_echo: bool = os.getenv("DATABASE_ECHO", "true").lower() == "true"
     
     # Authentication
-    secret_key: str = os.getenv("SECRET_KEY", "change-me-in-production")
+    secret_key: str = os.getenv("SECRET_KEY", DEFAULT_SECRET_KEY)
     algorithm: str = os.getenv("ALGORITHM", "HS256")
     access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    # Refresh token lifetime without "Remember me" (cookie is also session-only)
     refresh_token_expire_days: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
-    
+    # Refresh token lifetime with "Remember me" (cookie persists across browser restarts)
+    refresh_token_remember_days: int = int(os.getenv("REFRESH_TOKEN_REMEMBER_DAYS", "30"))
+
+    # Auth cookies (Secure must be true in production, where the site is served over HTTPS)
+    cookie_secure: bool = os.getenv("COOKIE_SECURE", "false").lower() == "true"
+    cookie_samesite: str = os.getenv("COOKIE_SAMESITE", "lax")
+
     # CORS Configuration
     cors_origins: list = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001").split(",")
     cors_allow_credentials: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "true").lower() == "true"
@@ -48,5 +57,18 @@ class Settings:
     enable_restaurant_history: bool = os.getenv("ENABLE_RESTAURANT_HISTORY", "false").lower() == "true"
 
 
+    def validate(self) -> None:
+        # Refuse to run in production with a guessable JWT signing key
+        if self.environment == "production":
+            if self.secret_key == DEFAULT_SECRET_KEY or len(self.secret_key) < 32:
+                raise RuntimeError(
+                    "SECRET_KEY must be set to a random value of at least 32 characters in production. "
+                    "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(48))\""
+                )
+            if not self.cookie_secure:
+                raise RuntimeError("COOKIE_SECURE must be true in production.")
+
+
 # Create settings instance
 settings = Settings()
+settings.validate()

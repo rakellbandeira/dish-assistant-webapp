@@ -3,7 +3,7 @@
     "bsonType": "object",
     "title": "User Schema",
     "description": "Validation schema for the users collection",
-    "required": ["_id", "email", "password_hash", "created_at"],
+    "required": ["_id", "email", "username", "password_hash", "terms_accepted_at", "created_at"],
     "properties": {
       "_id": {
         "bsonType": "objectId",
@@ -11,9 +11,9 @@
       },
       "email": {
         "bsonType": "string",
-        "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
-        "description": "User email address (unique)",
-        "examples": ["user@example.com"]
+        "maxLength": 254,
+        "pattern": "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$",
+        "description": "User email address (unique, stored trimmed and lowercased by the backend)"
       },
       "password_hash": {
         "bsonType": "string",
@@ -25,7 +25,11 @@
         "minLength": 3,
         "maxLength": 30,
         "pattern": "^[a-zA-Z0-9_-]+$",
-        "description": "Display name for the user"
+        "description": "Display name chosen at registration (unique, case-insensitive)"
+      },
+      "terms_accepted_at": {
+        "bsonType": "date",
+        "description": "When the user accepted the Terms & Conditions and consented to AI use of their data"
       },
       "created_at": {
         "bsonType": "date",
@@ -41,13 +45,12 @@
   "indexes": [
     {
       "key": { "email": 1 },
-      "unique": true,
-      "sparse": true
+      "unique": true
     },
     {
       "key": { "username": 1 },
       "unique": true,
-      "sparse": true
+      "collation": { "locale": "en", "strength": 2 }
     },
     {
       "key": { "created_at": -1 }
