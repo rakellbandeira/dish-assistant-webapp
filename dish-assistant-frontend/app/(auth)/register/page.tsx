@@ -8,8 +8,10 @@ import PasswordStrengthMeter from "@/components/auth/PasswordStrengthMeter";
 import Checkbox from "@/components/ui/Checkbox";
 import Button from "@/components/ui/Button";
 import { isValidEmail, getPasswordStrength } from "@/lib/validation";
+import { registerRequest } from "@/lib/auth";
 
 type FieldErrors = {
+  username?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
@@ -17,6 +19,7 @@ type FieldErrors = {
 };
 
 export default function RegisterPage() {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -28,6 +31,12 @@ export default function RegisterPage() {
 
   function validate() {
     const errors: FieldErrors = {};
+
+    if (!username.trim()) errors.username = "Username is required.";
+    else if (username.trim().length < 3)
+      errors.username = "Username must be at least 3 characters.";
+    else if (!/^[a-zA-Z0-9_]+$/.test(username.trim()))
+      errors.username = "Letters, numbers, and underscores only.";
 
     if (!email.trim()) errors.email = "Email is required.";
     else if (!isValidEmail(email)) errors.email = "Enter a valid email address.";
@@ -60,15 +69,7 @@ export default function RegisterPage() {
 
     setIsSubmitting(true);
     try {
-      // TODO: replace with the real registration endpoint, e.g.:
-      // const res = await fetch("/api/auth/register", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email, password }),
-      // });
-      // if (!res.ok) throw new Error((await res.json()).message);
-
-      await new Promise((resolve) => setTimeout(resolve, 1200)); // placeholder
+      await registerRequest({ username, email, password });
 
       // TODO: redirect to onboarding/dashboard on success
     } catch (err) {
@@ -107,6 +108,17 @@ export default function RegisterPage() {
               {formError}
             </div>
           )}
+
+          <AuthInput
+            label="Username"
+            type="text"
+            name="username"
+            placeholder="yourusername"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            error={fieldErrors.username}
+            autoComplete="username"
+          />
 
           <AuthInput
             label="Email"
