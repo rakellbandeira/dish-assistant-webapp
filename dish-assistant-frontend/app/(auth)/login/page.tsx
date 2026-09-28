@@ -6,31 +6,33 @@ import SiteHeader from "@/components/layouts/SiteHeader";
 import AuthInput from "@/components/auth/AuthInput";
 import Checkbox from "@/components/ui/Checkbox";
 import Button from "@/components/ui/Button";
-import { isValidEmail } from "@/lib/validation";
+import { loginRequest } from "@/lib/auth";
 
-const REMEMBER_ME_KEY = "dish-assistant:remembered-email";
+const REMEMBERED_USERNAME_KEY = "dish-assistant:remembered-username";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
-  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{
+    username?: string;
+    password?: string;
+  }>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const remembered = window.localStorage.getItem(REMEMBER_ME_KEY);
+    const remembered = window.localStorage.getItem(REMEMBERED_USERNAME_KEY);
     if (remembered) {
-      setEmail(remembered);
+      setUsername(remembered);
       setRememberMe(true);
     }
   }, []);
 
   function validate() {
     const errors: typeof fieldErrors = {};
-    if (!email.trim()) errors.email = "Email is required.";
-    else if (!isValidEmail(email)) errors.email = "Enter a valid email address.";
+    if (!username.trim()) errors.username = "Username is required.";
     if (!password) errors.password = "Password is required.";
 
     setFieldErrors(errors);
@@ -45,20 +47,19 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
     try {
-
-      await new Promise((resolve) => setTimeout(resolve, 1200)); // placeholder
+            await loginRequest({ username, password, rememberMe });
 
       if (rememberMe) {
-        window.localStorage.setItem(REMEMBER_ME_KEY, email);
+        window.localStorage.setItem(REMEMBERED_USERNAME_KEY, username);
       } else {
-        window.localStorage.removeItem(REMEMBER_ME_KEY);
+        window.localStorage.removeItem(REMEMBERED_USERNAME_KEY);
       }
-
+      
     } catch (err) {
       setFormError(
         err instanceof Error
           ? err.message
-          : "That email and password don't match. Try again."
+          : "That username and password don't match. Try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -92,14 +93,14 @@ export default function LoginPage() {
           )}
 
           <AuthInput
-            label="Email"
-            type="email"
-            name="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={fieldErrors.email}
-            autoComplete="email"
+            label="Username"
+            type="text"
+            name="username"
+            placeholder="yourusername"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            error={fieldErrors.username}
+            autoComplete="username"
           />
           <AuthInput
             label="Password"
@@ -115,7 +116,7 @@ export default function LoginPage() {
           <div className="flex items-center justify-between -mt-1">
             <Checkbox
               id="remember-me"
-              label="Remember me"
+              label="Remember me for 30 days"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
             />
