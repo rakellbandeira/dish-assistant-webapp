@@ -18,12 +18,6 @@ export default function SiteHeader({ isLoggedIn = false, onLogout }: SiteHeaderP
         Dish assistant
       </Link>
 
-      <nav className="hidden sm:flex gap-8 text-sm text-secondary font-body">
-        <Link href="/how-it-works">How it works</Link>
-        <Link href="/recipes">Recipes</Link>
-        <Link href="/about">About</Link>
-      </nav>
-
       <div className="flex items-center gap-3 font-body text-sm">
         {isLoggedIn ? (
           <>
