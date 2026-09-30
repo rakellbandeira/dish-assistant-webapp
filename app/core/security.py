@@ -1,4 +1,7 @@
 """Password hashing, JWT creation/validation, and auth cookie helpers.
+
+See docs/auth-contract.md for how these are used by the /api/auth endpoints
+and docs/password-security.md for the reasoning behind the choices here.
 """
 import re
 import uuid
@@ -15,33 +18,34 @@ TokenType = Literal["access", "refresh"]
 
 ACCESS_COOKIE_NAME = "access_token"
 REFRESH_COOKIE_NAME = "refresh_token"
-
 # The access cookie is sent to every API route; the refresh cookie only to the auth routes
 ACCESS_COOKIE_PATH = "/api"
 REFRESH_COOKIE_PATH = "/api/auth"
 
 BCRYPT_ROUNDS = 12
-BCRYPT_MAX_BYTES = 72  
+BCRYPT_MAX_BYTES = 72  # bcrypt ignores (bcrypt>=5: rejects) anything past 72 bytes
 PASSWORD_MIN_LENGTH = 8
 
 
 # PASSWORDS
 
 def validate_password_rules(password: str) -> str:
-    """Enforce the password policy. Returns the password or raises ValueError with a message."""
+    """Enforce the password policy. Returns the password or raises ValueError with a user-facing message.
+
+    Mirrors the frontend's getPasswordStrength (dish-assistant-frontend/lib/validation.ts):
+    8+ characters, plus at least one of: an uppercase letter, a number, a symbol.
+    """
     if len(password) < PASSWORD_MIN_LENGTH:
         raise ValueError(f"Password must be at least {PASSWORD_MIN_LENGTH} characters long.")
     if len(password.encode("utf-8")) > BCRYPT_MAX_BYTES:
         raise ValueError(f"Password must be at most {BCRYPT_MAX_BYTES} bytes long.")
-    if not re.search(r"[A-Za-z]", password):
-        raise ValueError("Password must contain at least one letter.")
-    if not re.search(r"\d", password):
-        raise ValueError("Password must contain at least one number.")
+    if not (re.search(r"[A-Z]", password) or re.search(r"[0-9]", password) or re.search(r"[^A-Za-z0-9]", password)):
+        raise ValueError("Password must include an uppercase letter, a number or a symbol.")
     return password
 
 
 def hash_password(password: str) -> str:
-    """Hash a password with bcrypt."""
+    """Hash a password with bcrypt (random salt included). Result is a 60-character string."""
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=BCRYPT_ROUNDS)).decode("utf-8")
 
 
@@ -54,7 +58,8 @@ def verify_password(password: str, password_hash: str) -> bool:
         return False
 
 
-# Used when attackers try to login with email that doesn't exist, so the response takes as long as a wrong password would
+# Used when a login email doesn't exist, so the response takes as long as a wrong
+# password would and attackers can't tell which emails are registered.
 _DUMMY_HASH = hash_password("dummy-password-1")
 
 
@@ -88,7 +93,7 @@ def create_refresh_token(user_id: str, remember_me: bool) -> str:
 
 
 def decode_token(token: str, expected_type: TokenType) -> dict:
-    """Validate signature, expiry and token type.."""
+    """Validate signature, expiry and token type. Raises 401 on any problem."""
     try:
         payload = jwt.decode(
             token,
@@ -115,7 +120,8 @@ def unauthorized(message: str = "Not authenticated.") -> HTTPException:
 def set_auth_cookies(response: Response, user_id: str, remember_me: bool) -> None:
     """Issue a fresh access + refresh token pair as httpOnly cookies.
 
-    remember_me cookies persist across browser restarts
+    With remember_me the cookies persist across browser restarts; without it they
+    are session cookies that the browser drops when it closes.
     """
     access_max_age = settings.access_token_expire_minutes * 60 if remember_me else None
     refresh_max_age = settings.refresh_token_remember_days * 24 * 60 * 60 if remember_me else None

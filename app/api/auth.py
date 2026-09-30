@@ -17,11 +17,18 @@ from app.core.security import clear_auth_cookies, set_auth_cookies
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
-async def register(data: RegisterRequest):
+async def register(data: RegisterRequest, response: Response):
     user = await AuthService.register(
         email=data.email,
         username=data.username,
         password=data.password,
+    )
+
+    # A new account is signed in right away, with session cookies (as if "Remember me" were unchecked)
+    set_auth_cookies(
+        response=response,
+        user_id=str(user["_id"]),
+        remember_me=False,
     )
 
     return AuthResponse(

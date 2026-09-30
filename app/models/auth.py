@@ -1,4 +1,4 @@
-"""Request/response models for the /api/auth endpoints"""
+"""Request/response models for the /api/auth endpoints (see docs/auth-contract.md)."""
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.core.security import BCRYPT_MAX_BYTES, validate_password_rules
@@ -7,7 +7,7 @@ USERNAME_PATTERN = r"^[a-zA-Z0-9_-]+$"
 
 
 def _normalize_email(value):
-    # Stored and compared in lowercase
+    # Stored and compared in lowercase so "Ana@x.com" and "ana@x.com" are the same account
     return value.strip().lower() if isinstance(value, str) else value
 
 
@@ -42,9 +42,12 @@ class RegisterRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     email: EmailStr = Field(max_length=254)
-    
+    # No strength rules on login, only a sanity limit; a wrong password just fails verification
     password: str = Field(min_length=1, max_length=BCRYPT_MAX_BYTES * 4)
-    remember_me: bool = False
+    # Sent by the frontend as "rememberMe"; used in Python as data.remember_me
+    remember_me: bool = Field(default=False, alias="rememberMe")
+
+    model_config = {"populate_by_name": True}
 
     @field_validator("email", mode="before")
     @classmethod
@@ -53,7 +56,7 @@ class LoginRequest(BaseModel):
 
 
 class UserPublic(BaseModel):
-    
+    """The only user shape ever sent to the frontend. Never includes password_hash."""
     id: str
     email: str
     username: str

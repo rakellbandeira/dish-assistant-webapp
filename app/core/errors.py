@@ -1,9 +1,9 @@
-"""Exception handlers that give every error response a constant shape.
+"""Exception handlers that give every error response the same shape.
 
     {"message": "Human readable text"}
-    {"message": "Invalid input.", "errors": [{"field": "password", "message": "..."}]}
+    {"message": "Invalid input.", "errors": [{"field": "password", "message": "..."}]}   (422 only)
 
-The frontend reads (await res.json()).message; .
+The frontend reads (await res.json()).message; see docs/auth-contract.md.
 """
 import logging
 
@@ -27,7 +27,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
 async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     errors = []
     for error in exc.errors():
-        # loc looks like ("body", "password"); 
+        # loc looks like ("body", "password"); the frontend only needs the field name
         location = [str(part) for part in error.get("loc", ()) if part != "body"]
         text = error.get("msg", "Invalid value.")
         # Pydantic prefixes messages from our own ValueErrors with "Value error, "
