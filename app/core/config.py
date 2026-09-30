@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-DEFAULT_SECRET_KEY = "change-me-in-production"
+# Development-only fallback; production refuses to start with it (see Settings.validate)
+DEFAULT_SECRET_KEY = "change-me-in-production-dev-only-key"
 
 class Settings:
 
@@ -22,12 +23,14 @@ class Settings:
     reload: bool = os.getenv("RELOAD", "true").lower() == "true"
     
     # Database Configuration
-    mongodb_url: str = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
-    database_name: str = os.getenv("DATABASE_NAME", "dish_assistant")
+    # `or` so empty lines in .env also fall back to the defaults
+    mongodb_url: str = os.getenv("MONGODB_URL") or "mongodb://localhost:27017"
+    database_name: str = os.getenv("DATABASE_NAME") or "dish_assistant"
     database_echo: bool = os.getenv("DATABASE_ECHO", "true").lower() == "true"
     
     # Authentication
-    secret_key: str = os.getenv("SECRET_KEY", DEFAULT_SECRET_KEY)
+    # `or` so an empty "SECRET_KEY=" line in .env also falls back to the default
+    secret_key: str = os.getenv("SECRET_KEY") or DEFAULT_SECRET_KEY
     algorithm: str = os.getenv("ALGORITHM", "HS256")
     access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
     # Refresh token lifetime without "Remember me" (cookie is also session-only)

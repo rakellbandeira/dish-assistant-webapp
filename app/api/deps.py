@@ -4,7 +4,7 @@ Protect a route by adding the current user as a parameter:
 
     @router.get("/preferences")
     async def get_preferences(user: dict = Depends(get_current_user)):
-    
+        ...
 """
 from fastapi import Request
 
@@ -15,7 +15,7 @@ from app.db.database import to_object_id, user_collection
 async def get_current_user(request: Request) -> dict:
     """Read the access-token cookie, validate it and return the user's Mongo document.
 
-    401 if the cookie is missing, invalid or expired, or user no longer exists.
+    Raises 401 when the cookie is missing, invalid or expired, or the user no longer exists.
     """
     token = request.cookies.get(ACCESS_COOKIE_NAME)
     if not token:

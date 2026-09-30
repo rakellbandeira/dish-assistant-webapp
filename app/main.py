@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 from app.core.config import settings
 from app.core.errors import register_exception_handlers
+from app.services.auth_service import AuthService
 
 # Configure logging
 logging.basicConfig(
@@ -26,8 +27,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
 
     
     logger.info("Application starting up...")
-    
-    yield  
+
+    # Create the unique email/username indexes (safe to run on every start; no-op if they exist)
+    try:
+        await AuthService.create_indexes()
+        logger.info("✓ User indexes ensured")
+    except Exception:
+        logger.exception("Could not create user indexes; email/username uniqueness is NOT enforced by the database")
+
+    yield
     
     
     logger.info("Application shutting down...")

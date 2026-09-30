@@ -1,18 +1,24 @@
-# Auth agreement 
-This doc is an agreement between frontend and backend for everything related to
+# Auth Contract — Dish Assistant
+
+**Status:** Draft v1 for Sprint 2 · **Owner:** Rakell (Dev 1) · **Reviewers:** Armando, Bailey, Andrea
+
+This document is the agreement between frontend and backend for everything related to
 signing up, signing in, staying signed in and signing out. Build against this document,
-not against assumptions. If you need to change something, change here first (preferrably in a PR so everyone can see), then change the code.
+not against assumptions. If something here needs to change, change this file first
+(in a PR everyone can see), then change the code.
 
 ---
 
 ## 1. General rules (apply to every endpoint, not just auth)
 
-| Base path | Every backend route starts with `/api` |
+| Rule | Value |
+|---|---|
+| Base path | Every backend route starts with **`/api`** |
 | How the frontend calls it | Relative URLs, e.g. `fetch("/api/auth/login")`. Never hardcode `http://localhost:8000`. |
 | How the request reaches FastAPI | Next.js forwards `/api/*` to the backend (`rewrites()` in `dish-assistant-frontend/next.config.ts`). The backend address comes from the `BACKEND_URL` env var (default `http://localhost:8000`). |
 | Request body | JSON, with header `Content-Type: application/json` |
 | Response body | JSON |
-| Authentication | httpOnly cookies set by the backend (see §3). The frontend never reads, stores or sends tokens itself. |
+| Authentication | httpOnly cookies set by the backend (see §3). The frontend **never** reads, stores or sends tokens itself. |
 | Error body | Always `{ "message": "..." }` (see §2) |
 
 Because the browser sees frontend and backend as the same site, `fetch` sends the auth
@@ -23,17 +29,17 @@ cookies automatically; no `credentials` option or `Authorization` header is need
 Every non-2xx response has this shape:
 
 ```json
-{ "message": "text that can be shown to the user" }
+{ "message": "Human-readable text that can be shown to the user" }
 ```
 
-Validation errors (422) also include one entry per invalid field, so forms can show
+Validation errors (**422**) also include one entry per invalid field, so forms can show
 the message under the right input:
 
 ```json
 {
-  "message": "Password must contain at least one number.",
+  "message": "Password must be at least 8 characters long.",
   "errors": [
-    { "field": "password", "message": "Password must contain at least one number." }
+    { "field": "password", "message": "Password must be at least 8 characters long." }
   ]
 }
 ```
@@ -60,24 +66,25 @@ if (!res.ok) {
 
 ## 3. Tokens and cookies
 
-Two JWTs, both stored by the browser as httpOnly cookies (for safety)
+Two JWTs, both stored by the browser as **httpOnly cookies** (JavaScript cannot read them,
+so an injected script cannot steal them).
 
 | Cookie | Contains | Lifetime | Sent to | Purpose |
-
-| `access_token` | JWT, `type: "access"` | 30 minutes | every `/api/*` request | Proves who the user is |
-| `refresh_token` | JWT, `type: "refresh"` | 30 days with "Remember me" | only `/api/auth/*` | Gets a new access token without re-entering the password |
+|---|---|---|---|---|
+| `access_token` | JWT, `type: "access"` | **30 minutes** | every `/api/*` request | Proves who the user is |
+| `refresh_token` | JWT, `type: "refresh"` | **7 days**, or **30 days** with "Remember me" | only `/api/auth/*` | Gets a new access token without re-entering the password |
 
 Cookie attributes: `HttpOnly`, `SameSite=Lax`, `Secure` in production (HTTPS).
 
-About "Remember me"
+**"Remember me"**
 
 | | Checked | Unchecked |
 |---|---|---|
 | Cookies | Persistent: survive closing the browser | Session cookies: deleted when the browser closes |
-| Refresh token lifetime | 30 days |
+| Refresh token lifetime | 30 days | 7 days (or until the browser closes, whichever is first) |
 | Email pre-filled next time | Yes (frontend saves it in `localStorage`) | No (frontend removes it) |
 
-About JWT payload (signed with HS256 and the backend's `SECRET_KEY`):
+**JWT payload** (signed with HS256 and the backend's `SECRET_KEY`):
 
 ```json
 {
@@ -111,9 +118,9 @@ same rules so users get instant feedback.
 
 | Field | Rule | Notes |
 |---|---|---|
-| `email` | Valid email, max 254 characters | Backend trims and lowercases it before storing or comparing. |
-| `username` | 3–30 characters; letters, numbers, `_` and `-` only | Leading/trailing spaces trimmed. Unique, case-insensitive |
-| `password` (register) | At least 8 characters, at least one letter and one number, at most 72 bytes | 72 bytes is bcrypt's limit. Accented letters use more than 1 byte
+| `email` | Valid email, max 254 characters | Backend trims and lowercases it before storing or comparing. `Ana@X.com` and `ana@x.com` are the same account. |
+| `username` | 3–30 characters; letters, numbers, `_` and `-` only | Leading/trailing spaces trimmed. Unique, **case-insensitive** (`Ana` and `ana` count as taken by each other). |
+| `password` (register) | At least **8 characters**, plus at least one of: an **uppercase letter**, a **number** or a **symbol**; at most **72 bytes** | Same rule as the frontend strength meter (score ≥ 2 in `lib/validation.ts`). 72 bytes is bcrypt's limit; accented letters and emoji use 2–4 bytes each. |
 | `password` (login) | Not empty | No strength rules on login |
 | `accepted_terms` | Must be `true` | Backend records the time in `terms_accepted_at` |
 
@@ -121,14 +128,14 @@ same rules so users get instant feedback.
 
 ### 6.1 `POST /api/auth/register`
 
-Creates an account and signs the user in (session cookies, as if "Remember me" were unchecked).
+Creates an account **and signs the user in** (session cookies, as if "Remember me" were unchecked).
 
 Request:
 ```json
 {
   "email": "Ana.Silva@Example.com",
   "username": "ana_silva",
-  "password": "tacos4ever",
+  "password": "Tacos4ever",
   "accepted_terms": true
 }
 ```
@@ -142,9 +149,9 @@ Errors:
 
 | Status | `message` |
 |---|---|
-| 409 | `"An account with this email already exists."` |
-| 409 | `"This username is already taken."` |
-| 422 | Field-specific message, e.g. `"Password must contain at least one number."` |
+| 409 | `"Email is already registered."` |
+| 409 | `"Username is already taken."` |
+| 422 | Field-specific message, e.g. `"Password must be at least 8 characters long."` |
 
 Backend stores: `email` (normalized), `username`, `password_hash`, `terms_accepted_at`, `created_at`.
 
@@ -152,11 +159,11 @@ Backend stores: `email` (normalized), `username`, `password_hash`, `terms_accept
 
 Request:
 ```json
-{ "email": "ana.silva@example.com", "password": "tacos4ever", "remember_me": true }
+{ "email": "ana.silva@example.com", "password": "Tacos4ever", "rememberMe": true }
 ```
-`remember_me` is optional and defaults to `false`.
+`rememberMe` (camelCase, matching the frontend) is optional and defaults to `false`.
 
-**200 OK**: sets both cookies (persistent if `remember_me`, session otherwise).
+**200 OK**: sets both cookies (persistent if `rememberMe`, session otherwise).
 ```json
 { "user": { "id": "66f1...", "email": "ana.silva@example.com", "username": "ana_silva" } }
 ```
@@ -165,7 +172,7 @@ Errors:
 
 | Status | `message` |
 |---|---|
-| 401 | `"Incorrect email or password."` (same message whether the email exists or not, so nobody can find out which emails are registered) |
+| 401 | `"Invalid email or password."` (same message whether the email exists or not, so nobody can find out which emails are registered) |
 | 422 | Field-specific message |
 
 ### 6.3 `POST /api/auth/refresh`
@@ -187,7 +194,7 @@ No body. Always succeeds, even if the user was not signed in.
 
 **200 OK**: tells the browser to delete both cookies.
 ```json
-{ "message": "Signed out." }
+{ "message": "Logged out successfully." }
 ```
 
 Note: logout removes the cookies from the browser. A token copied before logout keeps working
@@ -206,7 +213,6 @@ Uses the `access_token` cookie.
 | Status | `message` |
 |---|---|
 | 401 | `"Not authenticated."`, `"Session expired. Please sign in again."`, `"Invalid authentication token."` or `"User no longer exists."` |
-
 
 ## 7. Frontend flows
 
@@ -261,7 +267,8 @@ It returns 401 in the standard error format when the cookie is missing, invalid 
 | Login and register pages (add **username** field; call the endpoints) | Bailey | `dish-assistant-frontend/app/(auth)/` |
 | AuthContext, `useAuth`, refresh-and-retry, protected routes | Andrea | `dish-assistant-frontend/` |
 
-### Backend implementation notes 
+### Backend implementation notes (for Armando)
+
 - Parse bodies with the models in `app/models/auth.py`; they already enforce §5 and normalize email.
 - Register: check email and username are free (return 409), then `hash_password()`, insert with
   `terms_accepted_at` and `created_at` set to `datetime.now(timezone.utc)`, then `set_auth_cookies(response, str(user_id), remember_me=False)`.
@@ -278,7 +285,7 @@ It returns 401 in the standard error format when the cookie is missing, invalid 
 
 | Env var | Default | Notes |
 |---|---|---|
-| `SECRET_KEY` | `change-me-in-production` | **Required in production**: random, 32+ characters. The app refuses to start otherwise. Generate with `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
+| `SECRET_KEY` | `change-me-in-production-dev-only-key` | **Required in production**: random, 32+ characters. The app refuses to start otherwise. Generate with `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Without "Remember me" |
 | `REFRESH_TOKEN_REMEMBER_DAYS` | `30` | With "Remember me" |
