@@ -20,11 +20,15 @@
       "summary": {
         "bsonType": "string",
         "minLength": 10,
-        "description": "AI-generated summary/explanation of recommendations based on user preferences",
-        "examples": [
-          "Based on your preference for spicy Italian dishes and vegetarian options, we recommend...",
-          "These selections match your liked cuisines and avoid all your allergies..."
-        ]
+        "description": "AI-generated summary/explanation of recommendations based on user preferences"
+      },
+      "model": {
+        "bsonType": "string",
+        "description": "Gemini model that produced this recommendation (e.g. gemini-2.5-flash)"
+      },
+      "prompt_version": {
+        "bsonType": "string",
+        "description": "Version of the prompt used (PROMPT_VERSION in app/services/prompts.py)"
       },
       "created_at": {
         "bsonType": "date",

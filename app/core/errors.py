@@ -15,6 +15,22 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 logger = logging.getLogger(__name__)
 
 
+class AIServiceError(Exception):
+    """Raised when the AI (Gemini) can't give us a usable answer.
+
+    503 = temporarily unavailable, try again · 502 = bad answer from the AI · 504 = too slow
+    """
+
+    def __init__(self, message: str, status_code: int = status.HTTP_503_SERVICE_UNAVAILABLE):
+        super().__init__(message)
+        self.message = message
+        self.status_code = status_code
+
+
+async def ai_service_exception_handler(request: Request, exc: AIServiceError) -> JSONResponse:
+    return JSONResponse(status_code=exc.status_code, content={"message": exc.message})
+
+
 async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
     message = exc.detail if isinstance(exc.detail, str) else "Request failed."
     return JSONResponse(
@@ -35,7 +51,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         errors.append({"field": ".".join(location) or None, "message": text})
 
     return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content={"message": errors[0]["message"] if len(errors) == 1 else "Invalid input.", "errors": errors},
     )
 
@@ -50,6 +66,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 
 
 def register_exception_handlers(app: FastAPI) -> None:
+    app.add_exception_handler(AIServiceError, ai_service_exception_handler)
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
     app.add_exception_handler(Exception, unhandled_exception_handler)
