@@ -28,6 +28,7 @@
       "menu_text": {
         "bsonType": "string",
         "minLength": 10,
+        "maxLength": 5000,
         "description": "Raw menu text uploaded by user (can be OCR'd text, pasted text, or menu content)"
       },
       "created_at": {

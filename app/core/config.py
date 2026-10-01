@@ -50,6 +50,13 @@ class Settings:
     
     # Google Gemini API
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
+    gemini_model: str = os.getenv("GEMINI_MODEL") or "gemini-3.8-flash"
+    # Used once when the main model is overloaded (503) or rate-limited (429); set to the main model to disable
+    gemini_fallback_model: str = os.getenv("GEMINI_FALLBACK_MODEL") or "gemini-3.5-flash"
+    # Max seconds to wait for one Gemini answer (newer "thinking" models can take 20-30s)
+    gemini_timeout_seconds: int = int(os.getenv("GEMINI_TIMEOUT_SECONDS") or "60")
+    # Total tries (first call + retries) for rate limits and temporary Gemini errors
+    gemini_max_attempts: int = int(os.getenv("GEMINI_MAX_ATTEMPTS") or "3")
     
     # Logging
     log_level: str = os.getenv("LOG_LEVEL", "INFO")

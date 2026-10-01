@@ -38,8 +38,7 @@
       "section": {
         "bsonType": "string",
         "description": "Menu section this dish belongs to",
-        "enum": ["appetizers", "soups", "salads", "mains", "sides", "desserts", "beverages", "drinks", "other"],
-        "examples": ["mains", "appetizers"]
+        "enum": ["Appetizer", "Soup", "Salad", "Main", "Side", "Dessert", "Drink", "Other"]
       },
       "created_at": {
         "bsonType": "date",
