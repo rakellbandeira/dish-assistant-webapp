@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import SiteHeader from "@/components/layouts/SiteHeader";
 import AuthInput from "@/components/auth/AuthInput";
 import PasswordStrengthMeter from "@/components/auth/PasswordStrengthMeter";
@@ -19,6 +20,8 @@ type FieldErrors = {
 };
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -71,14 +74,13 @@ export default function RegisterPage() {
     try {
       await registerRequest({ username, email, password });
 
-      // TODO: redirect to onboarding/dashboard on success
+      router.push("/preferences");
     } catch (err) {
       setFormError(
         err instanceof Error
           ? err.message
           : "Something went wrong creating your account. Please try again."
       );
-    } finally {
       setIsSubmitting(false);
     }
   }

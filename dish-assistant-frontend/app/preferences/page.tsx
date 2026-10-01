@@ -1,7 +1,93 @@
-export default function Preferences() {
+"use client";
+
+import { useEffect, useState } from "react";
+import { CircleCheck, Pencil } from "lucide-react";
+import SiteHeader from "@/components/layouts/SiteHeader";
+import Button from "@/components/ui/Button";
+import PreferenceWizard from "@/components/preferences/PreferenceWizard";
+import PreferenceSummary from "@/components/preferences/PreferenceSummary";
+import { EMPTY_PREFERENCES, Preferences, loadPreferences } from "@/lib/preferences";
+
+type View =
+  | { kind: "loading" }
+  | { kind: "setup" }
+  | { kind: "summary" }
+  | { kind: "edit"; startStep: number };
+
+export default function PreferencesPage() {
+  const [prefs, setPrefs] = useState<Preferences>(EMPTY_PREFERENCES);
+  const [view, setView] = useState<View>({ kind: "loading" });
+  const [justSaved, setJustSaved] = useState(false);
+
+  useEffect(() => {
+    const saved = loadPreferences();
+    if (saved) {
+      setPrefs(saved);
+      setView({ kind: "summary" });
+    } else {
+      setView({ kind: "setup" });
+    }
+  }, []);
+
+  function handleSaved(next: Preferences) {
+    setPrefs(next);
+    setJustSaved(true);
+    setView({ kind: "summary" });
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-2xl font-semibold">Preferences</h1>
-    </main>
+    <div className="min-h-screen bg-neutral font-body">
+      {/* TODO: derive isLoggedIn from real session state */}
+      <SiteHeader isLoggedIn />
+
+      <main className="mx-auto w-full max-w-2xl px-6 py-10 sm:py-14">
+        {view.kind === "loading" && <p className="text-center text-sm text-secondary">Loading your preferences…</p>}
+
+        {view.kind === "setup" && (
+          <>
+            <h1 className="mb-8 text-center font-heading text-3xl text-error sm:text-4xl">Tell us your tastes</h1>
+            <PreferenceWizard initial={prefs} mode="setup" onSaved={handleSaved} />
+          </>
+        )}
+
+        {view.kind === "summary" && (
+          <>
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h1 className="font-heading text-3xl text-error sm:text-4xl">Your taste profile</h1>
+                <p className="mt-1 text-sm text-secondary">Recommendations are tailored to these preferences.</p>
+              </div>
+              <Button onClick={() => { setJustSaved(false); setView({ kind: "edit", startStep: 0 }); }}>
+                <span className="flex items-center gap-2"><Pencil size={14} /> Edit all</span>
+              </Button>
+            </div>
+
+            {justSaved && (
+              <p role="status" className="mb-6 flex items-center gap-2 rounded-md border border-success/50 bg-success/10 px-3 py-2 text-sm text-error">
+                <CircleCheck size={16} className="shrink-0" /> Preferences saved.
+              </p>
+            )}
+
+            <PreferenceSummary
+              prefs={prefs}
+              onEditStep={(i) => { setJustSaved(false); setView({ kind: "edit", startStep: i }); }}
+            />
+          </>
+        )}
+
+        {view.kind === "edit" && (
+          <>
+            <h1 className="mb-8 text-center font-heading text-3xl text-error sm:text-4xl">Edit your preferences</h1>
+            <PreferenceWizard
+              initial={prefs}
+              mode="edit"
+              startStep={view.startStep}
+              onSaved={handleSaved}
+              onCancel={() => setView({ kind: "summary" })}
+            />
+          </>
+        )}
+      </main>
+    </div>
   );
 }
