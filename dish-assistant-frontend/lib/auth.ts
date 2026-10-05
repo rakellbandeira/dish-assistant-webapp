@@ -10,6 +10,7 @@ type RegisterPayload = {
   username: string;
   email: string;
   password: string;
+  acceptedTerms: boolean;
 };
 
 export function setToken(token: string, remember: boolean = false): void {

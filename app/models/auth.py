@@ -15,7 +15,10 @@ class RegisterRequest(BaseModel):
     email: EmailStr = Field(max_length=254)
     username: str = Field(min_length=3, max_length=30, pattern=USERNAME_PATTERN)
     password: str
-    accepted_terms: bool
+    # Sent by the frontend as "acceptedTerms"; used in Python as data.accepted_terms
+    accepted_terms: bool = Field(alias="acceptedTerms")
+
+    model_config = {"populate_by_name": True}
 
     @field_validator("email", mode="before")
     @classmethod

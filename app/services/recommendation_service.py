@@ -13,13 +13,11 @@ import unicodedata
 from datetime import datetime, timezone
 
 from bson import ObjectId
-from pydantic import ValidationError
 
 from app.db.database import (
     ai_recommendation_collection,
     dish_collection,
     menu_collection,
-    preferences_collection,
 )
 from app.models.preferences import PreferenceProfile
 from app.models.recommendation import (
@@ -29,6 +27,7 @@ from app.models.recommendation import (
     RecommendationRequest,
     RecommendationResponse,
 )
+from app.services import preference_service
 from app.services.gemini_client import generate_structured
 from app.services.prompts import (
     MAX_FAMILIAR_DISHES,
@@ -42,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 async def recommend(user_id: ObjectId, request: RecommendationRequest) -> RecommendationResponse:
-    profile = await get_preference_profile(user_id)
+    profile = await preference_service.get_profile_or_empty(user_id)
 
     prompt = build_recommendation_prompt(
         profile, request.menu_text, request.restaurant_name, request.restaurant_place
@@ -55,19 +54,6 @@ async def recommend(user_id: ObjectId, request: RecommendationRequest) -> Recomm
 
     familiar, new = _check_dishes(ai.data.dishes, profile, request.menu_text)
     return await _save(user_id, request, ai.data.summary, familiar, new, ai.model)
-
-
-async def get_preference_profile(user_id: ObjectId) -> PreferenceProfile:
-    """The user's saved preferences, or an empty profile if they haven't saved any yet."""
-    document = await preferences_collection.find_one({"user_id": user_id})
-    if document is None:
-        return PreferenceProfile()
-    try:
-        # Extra fields such as _id, user_id and timestamps are ignored
-        return PreferenceProfile.model_validate(document)
-    except ValidationError:
-        logger.warning("Preferences for user %s are in an unexpected format; using an empty profile", user_id)
-        return PreferenceProfile()
 
 
 # RECOMMENDATION LOGIC

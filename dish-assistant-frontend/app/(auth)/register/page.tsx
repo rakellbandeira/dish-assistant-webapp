@@ -72,7 +72,7 @@ export default function RegisterPage() {
 
     setIsSubmitting(true);
     try {
-      await registerRequest({ username, email, password });
+      await registerRequest({ username, email, password, acceptedTerms });
 
       router.push("/preferences");
     } catch (err) {
