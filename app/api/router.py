@@ -7,11 +7,13 @@ so all routes the browser calls must live here.
 from fastapi import APIRouter
 
 from app.api.auth import router as auth_router
+from app.api.preferences import router as preferences_router
 from app.api.recommendations import router as recommendations_router
 
 api_router = APIRouter(prefix="/api")
 
 api_router.include_router(auth_router)
+api_router.include_router(preferences_router)
 api_router.include_router(recommendations_router)
 
 
