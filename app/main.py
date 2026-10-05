@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 from app.core.config import settings
 from app.core.errors import register_exception_handlers
-from app.services import preference_service
+from app.services import feedback_service, preference_service
 from app.services.auth_service import AuthService
 
 # Configure logging
@@ -40,6 +40,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         logger.info("✓ Preference indexes ensured")
     except Exception:
         logger.exception("Could not create preference indexes; one-document-per-user is NOT enforced by the database")
+    try:
+        await feedback_service.create_indexes()
+        logger.info("✓ Feedback indexes ensured")
+    except Exception:
+        logger.exception("Could not create feedback indexes; one-rating-per-dish is NOT enforced by the database")
 
     yield
     

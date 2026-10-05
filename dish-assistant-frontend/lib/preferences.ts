@@ -1,3 +1,5 @@
+import { ApiError, apiRequest } from "@/lib/api";
+
 export type DishEntry = { id: string; name: string; rating: number }; // rating 0 = unrated, 1-5
 
 export type Preferences = {
@@ -97,18 +99,45 @@ export function cleanPreferences(p: Preferences): Preferences {
   };
 }
 
-const STORAGE_KEY = "dish-assistant:preferences";
+// Saved on the backend (GET/POST/PUT /api/preferences), one profile per signed-in user.
 
-export function loadPreferences(): Preferences | null {
+type SavedPreferences = Preferences & {
+  triedDishes: { id: string | null; name: string; rating: number }[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+function fromApi(saved: SavedPreferences): Preferences {
+  return {
+    likedFlavors: saved.likedFlavors,
+    likedFoods: saved.likedFoods,
+    dislikedFlavors: saved.dislikedFlavors,
+    dislikedFoods: saved.dislikedFoods,
+    cuisines: saved.cuisines,
+    dietary: saved.dietary,
+    allergies: saved.allergies,
+    // The editor needs an id per row; older rows may not have one
+    triedDishes: saved.triedDishes.map((d) => ({ ...d, id: d.id ?? newId() })),
+  };
+}
+
+/** The user's saved preferences, or null if they haven't saved any yet. */
+export async function loadPreferences(): Promise<Preferences | null> {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...EMPTY_PREFERENCES, ...JSON.parse(raw) } : null;
-  } catch {
-    return null;
+    return fromApi(await apiRequest<SavedPreferences>("/api/preferences"));
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
   }
 }
 
+/** Save the whole profile: update it, or create it the first time. */
 export async function savePreferences(p: Preferences): Promise<void> {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
-  await new Promise((r) => setTimeout(r, 400)); 
+  const options = { body: JSON.stringify(p) };
+  try {
+    await apiRequest("/api/preferences", { ...options, method: "PUT" });
+  } catch (err) {
+    if (!(err instanceof ApiError && err.status === 404)) throw err;
+    await apiRequest("/api/preferences", { ...options, method: "POST" });
+  }
 }
