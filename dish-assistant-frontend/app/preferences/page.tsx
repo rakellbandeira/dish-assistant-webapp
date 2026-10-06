@@ -51,8 +51,7 @@ export default function PreferencesPage() {
 
   return (
     <div className="min-h-screen bg-neutral font-body">
-      {/* TODO: derive isLoggedIn from real session state */}
-      <SiteHeader isLoggedIn />
+      <SiteHeader />
 
       <main className="mx-auto w-full max-w-2xl px-6 py-10 sm:py-14">
         {view.kind === "loading" && <p className="text-center text-sm text-secondary">Loading your preferences…</p>}

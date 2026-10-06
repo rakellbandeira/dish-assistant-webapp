@@ -1,5 +1,8 @@
 const TOKEN_KEY = "dish_assistant_token";
 
+// The signed-in user, as returned by the backend (register, login, /api/auth/me)
+export type AuthUser = { id: string; email: string; username: string };
+
 type LoginPayload = {
   username: string;
   password: string;
@@ -37,7 +40,7 @@ export function isAuthenticated(): boolean {
   return getToken() !== null;
 }
 
-export async function loginRequest(payload: LoginPayload) {
+export async function loginRequest(payload: LoginPayload): Promise<{ user: AuthUser }> {
   const res = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -53,7 +56,7 @@ export async function loginRequest(payload: LoginPayload) {
   return res.json();
 }
 
-export async function registerRequest(payload: RegisterPayload) {
+export async function registerRequest(payload: RegisterPayload): Promise<{ user: AuthUser }> {
   const res = await fetch("/api/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

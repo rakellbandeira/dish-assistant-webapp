@@ -11,7 +11,26 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+// These never trigger a refresh: they are the login/session endpoints themselves
+const NO_REFRESH_PATHS = ["/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/logout"];
+
+let refreshInProgress: Promise<boolean> | null = null;
+
+/**
+ * Ask the backend for a new 30-minute access token using the longer-lived refresh cookie.
+ * Several requests failing at once share one refresh call. Returns true if the session was renewed.
+ */
+export function refreshSession(): Promise<boolean> {
+  refreshInProgress ??= fetch("/api/auth/refresh", { method: "POST" })
+    .then((res) => res.ok)
+    .catch(() => false)
+    .finally(() => {
+      refreshInProgress = null;
+    });
+  return refreshInProgress;
+}
+
+export async function apiRequest<T>(path: string, options: RequestInit = {}, canRefresh = true): Promise<T> {
   let res: Response;
   try {
     res = await fetch(path, {
@@ -20,6 +39,11 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     });
   } catch {
     throw new ApiError("Can't reach the server. Check your connection and try again.", 0);
+  }
+
+  // Access token expired: renew the session once, then repeat the same request
+  if (res.status === 401 && canRefresh && !NO_REFRESH_PATHS.includes(path) && (await refreshSession())) {
+    return apiRequest<T>(path, options, false);
   }
 
   if (!res.ok) {
