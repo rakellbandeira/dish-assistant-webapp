@@ -8,7 +8,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.preferences import CamelModel
 from app.services.prompts import MENU_SECTIONS
@@ -39,7 +39,14 @@ class AIRecommendationResult(BaseModel):
 class RecommendationRequest(CamelModel):
     menu_text: str = Field(min_length=10, max_length=MAX_MENU_LENGTH)
     restaurant_name: str | None = Field(default=None, max_length=200)
-    restaurant_place: str | None = Field(default=None, max_length=200)
+    # Required: the AI uses the location to consider how dishes are made locally
+    restaurant_place: str = Field(min_length=2, max_length=200)
+
+    @field_validator("restaurant_name", "restaurant_place", mode="before")
+    @classmethod
+    def strip_text(cls, value):
+        # "   " counts as empty, so a location of only spaces is rejected
+        return value.strip() if isinstance(value, str) else value
 
 
 # 3. RESPONSE TO THE FRONTEND

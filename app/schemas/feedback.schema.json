@@ -23,16 +23,30 @@
       },
       "liked": {
         "bsonType": "bool",
-        "description": "Whether user liked (true) or disliked (false) the dish"
+        "description": "Whether user liked (true) or disliked (false) the dish: true when rating is 3 or more"
+      },
+      "rating": {
+        "bsonType": "int",
+        "minimum": 1,
+        "maximum": 5,
+        "description": "Star rating the user gave the dish (1-5)"
       },
       "created_at": {
         "bsonType": "date",
         "description": "Feedback submission timestamp"
+      },
+      "updated_at": {
+        "bsonType": "date",
+        "description": "Last time the user changed the rating"
       }
     },
     "additionalProperties": false
   },
   "indexes": [
+    {
+      "key": { "user_id": 1, "dish_id": 1 },
+      "unique": true
+    },
     {
       "key": { "user_id": 1, "created_at": -1 }
     },

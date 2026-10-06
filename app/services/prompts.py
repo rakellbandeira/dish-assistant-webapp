@@ -8,7 +8,7 @@ so we can tell which prompt produced which answer.
 """
 from app.models.preferences import PreferenceProfile
 
-PROMPT_VERSION = "recommendation-v1"
+PROMPT_VERSION = "recommendation-v2"  # v2: 3-star dishes count as enjoyed
 
 MAX_FAMILIAR_DISHES = 3
 MAX_NEW_DISHES = 3
@@ -103,12 +103,11 @@ def format_preferences(profile: PreferenceProfile) -> str:
         _line("Disliked foods", profile.disliked_foods),
     ]
 
-    loved = [f"{d.name} ({d.rating}/5)" for d in profile.tried_dishes if d.rating >= 4]
-    okay = [f"{d.name} ({d.rating}/5)" for d in profile.tried_dishes if d.rating == 3]
+    # Same rule as dish ratings: 3-5 stars = enjoyed, 1-2 stars = disliked
+    loved = [f"{d.name} ({d.rating}/5)" for d in profile.tried_dishes if d.rating >= 3]
     disliked = [f"{d.name} ({d.rating}/5)" for d in profile.tried_dishes if d.rating <= 2]
     lines += [
         _line("Dishes tried and enjoyed", loved),
-        _line("Dishes tried, found okay", okay),
         _line("Dishes tried and disliked", disliked),
     ]
     return "\n".join(line for line in lines if line)
