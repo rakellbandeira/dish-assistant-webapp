@@ -10,6 +10,7 @@ from app.api.router import api_router
 from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.services.auth_service import AuthService
+from app.services.preference_service import PreferenceService
 
 # Configure logging
 logging.basicConfig(
@@ -34,6 +35,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         logger.info("✓ User indexes ensured")
     except Exception:
         logger.exception("Could not create user indexes; email/username uniqueness is NOT enforced by the database")
+
+    try:
+        await PreferenceService.create_indexes()
+        logger.info("✓ Preference indexes ensured")
+    except Exception:
+        logger.exception("Could not create preference indexes")
 
     yield
     
