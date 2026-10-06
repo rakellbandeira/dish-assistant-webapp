@@ -10,6 +10,7 @@ import Checkbox from "@/components/ui/Checkbox";
 import Button from "@/components/ui/Button";
 import { isValidEmail, getPasswordStrength } from "@/lib/validation";
 import { registerRequest } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
 
 type FieldErrors = {
   username?: string;
@@ -21,6 +22,7 @@ type FieldErrors = {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { setUser } = useAuth();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -72,7 +74,8 @@ export default function RegisterPage() {
 
     setIsSubmitting(true);
     try {
-      await registerRequest({ username, email, password, acceptedTerms });
+      const { user } = await registerRequest({ username, email, password, acceptedTerms });
+      setUser(user); // signed in right away: the header switches to the signed-in view
 
       router.push("/preferences");
     } catch (err) {
@@ -87,7 +90,7 @@ export default function RegisterPage() {
 
   return (
     <main className="min-h-screen bg-neutral font-body">
-      <SiteHeader isLoggedIn={false} />
+      <SiteHeader />
 
       <section className="flex flex-col items-center px-6 py-12 sm:py-16 md:py-20">
         <h1 className="font-heading text-3xl sm:text-4xl text-error mb-2 text-center">

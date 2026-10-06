@@ -6,7 +6,7 @@ import LikedDishesSection from "@/components/dishes/LikedDishesSection";
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-neutral font-body">
-      <SiteHeader/>
+      <SiteHeader />
 
       <main className="flex flex-1 flex-col items-center px-6 py-16 sm:px-8 sm:py-20">
         <h1 className="text-center font-heading text-4xl font-bold text-error sm:text-6xl">

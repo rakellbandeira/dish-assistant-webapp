@@ -7,10 +7,12 @@ import AuthInput from "@/components/auth/AuthInput";
 import Checkbox from "@/components/ui/Checkbox";
 import Button from "@/components/ui/Button";
 import { loginRequest } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
 
 const REMEMBERED_USERNAME_KEY = "dish-assistant:remembered-username";
 
 export default function LoginPage() {
+  const { setUser } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -47,7 +49,8 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
     try {
-            await loginRequest({ username, password, rememberMe });
+      const { user } = await loginRequest({ username, password, rememberMe });
+      setUser(user); // the header switches to the signed-in view
 
       if (rememberMe) {
         window.localStorage.setItem(REMEMBERED_USERNAME_KEY, username);
@@ -68,7 +71,7 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-neutral font-body">
-      <SiteHeader isLoggedIn={false} />
+      <SiteHeader />
 
       <section className="flex flex-col items-center px-6 py-12 sm:py-16 md:py-20">
         <h1 className="font-heading text-3xl sm:text-4xl text-error mb-2 text-center">

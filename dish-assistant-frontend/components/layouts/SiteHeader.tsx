@@ -1,13 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { Menu, CircleUserRound, LogOut } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { useAuth } from "@/context/AuthContext";
 
-type SiteHeaderProps = {
-  isLoggedIn?: boolean;
-  onLogout?: () => void;
-};
+export default function SiteHeader() {
+  const { user, isLoading, logout } = useAuth();
 
-export default function SiteHeader({ isLoggedIn = false, onLogout }: SiteHeaderProps) {
   return (
     <header className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-secondary/15">
       <button type="button" aria-label="Open menu" className="text-error sm:hidden">
@@ -18,19 +18,20 @@ export default function SiteHeader({ isLoggedIn = false, onLogout }: SiteHeaderP
         Dish assistant
       </Link>
 
-      <div className="flex items-center gap-3 font-body text-sm">
-        {isLoggedIn ? (
+      <div className="flex min-h-9 items-center gap-3 font-body text-sm">
+        {isLoading ? null : user ? ( // nothing while checking, so "Sign in" doesn't flash for signed-in users
           <>
+            {/* TODO: point to a profile page once it exists */}
             <Link
-              href="/profile"
-              aria-label="Your profile"
+              href="/preferences"
+              aria-label="Your preferences"
               className="text-secondary hover:text-primary"
             >
               <CircleUserRound size={24} />
             </Link>
             <button
               type="button"
-              onClick={onLogout}
+              onClick={logout}
               className="flex items-center gap-1.5 text-secondary hover:text-primary"
             >
               <LogOut size={16} />
