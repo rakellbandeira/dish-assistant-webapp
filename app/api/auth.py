@@ -11,6 +11,8 @@ from app.api.deps import get_current_user
 
 from app.services.auth_service import AuthService
 
+from app.core.rate_limit import client_ip, login_per_account, login_per_ip, register_per_ip
+
 from app.core.security import (
     REFRESH_COOKIE_NAME,
     clear_auth_cookies,
@@ -22,7 +24,9 @@ from app.core.security import (
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
-async def register(data: RegisterRequest, response: Response):
+async def register(data: RegisterRequest, request: Request, response: Response):
+    register_per_ip.check(client_ip(request))  
+
     user = await AuthService.register(
         email=data.email,
         username=data.username,
@@ -41,7 +45,10 @@ async def register(data: RegisterRequest, response: Response):
     )
 
 @router.post("/login", response_model=AuthResponse)
-async def login(data: LoginRequest, response: Response):
+async def login(data: LoginRequest, request: Request, response: Response):
+    login_per_account.check(data.email)
+    login_per_ip.check(client_ip(request))
+
     user = await AuthService.login(
         email=data.email,
         password=data.password,

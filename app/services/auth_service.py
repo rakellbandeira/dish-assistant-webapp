@@ -2,7 +2,7 @@ from app.db.database import user_collection
 from fastapi import HTTPException, status
 from pymongo.errors import DuplicateKeyError
 
-from app.core.security import hash_password, verify_password
+from app.core.security import hash_password, verify_password, verify_password_dummy
 
 
 class AuthService:
@@ -112,6 +112,7 @@ class AuthService:
         user = await AuthService.get_user_by_email(email)
 
         if not user:
+            verify_password_dummy(password)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password.",
