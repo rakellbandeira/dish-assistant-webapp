@@ -11,7 +11,6 @@ from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.services import feedback_service, preference_service
 from app.services.auth_service import AuthService
-from app.services.preference_service import PreferenceService
 
 # Configure logging
 logging.basicConfig(
@@ -46,12 +45,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         logger.info("✓ Feedback indexes ensured")
     except Exception:
         logger.exception("Could not create feedback indexes; one-rating-per-dish is NOT enforced by the database")
-
-    try:
-        await PreferenceService.create_indexes()
-        logger.info("✓ Preference indexes ensured")
-    except Exception:
-        logger.exception("Could not create preference indexes")
 
     yield
     

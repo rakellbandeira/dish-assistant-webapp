@@ -1,9 +1,10 @@
 import pytest
 from fastapi.testclient import TestClient
-
+from pymongo.errors import DuplicateKeyError
+from unittest.mock import AsyncMock, patch
+from datetime import datetime, timezone
 from app.api.deps import get_current_user
 from app.main import app
-from unittest.mock import AsyncMock, patch
 
 client = TestClient(app)
 
@@ -36,12 +37,10 @@ def test_get_preferences_authenticated(authenticated_user):
 
     assert response.status_code == 200
 
+
 def test_create_preferences(authenticated_user):
     with patch(
-        "app.api.preferences.preferences_collection.find_one",
-        new=AsyncMock(return_value=None),
-    ), patch(
-        "app.api.preferences.preferences_collection.insert_one",
+        "app.services.preference_service.preferences_collection.insert_one",
         new=AsyncMock(),
     ):
         response = client.post(
@@ -72,14 +71,11 @@ def test_create_preferences(authenticated_user):
     assert data["triedDishes"][0]["name"] == "Tacos"
     assert data["triedDishes"][0]["rating"] == 5
 
+
 def test_create_preferences_duplicate(authenticated_user):
     with patch(
-        "app.api.preferences.preferences_collection.find_one",
-        new=AsyncMock(
-            return_value={
-                "user_id": "507f1f77bcf86cd799439011"
-            }
-        ),
+        "app.services.preference_service.preferences_collection.insert_one",
+        new=AsyncMock(side_effect=DuplicateKeyError("duplicate key")),
     ):
         response = client.post(
             "/api/preferences",
@@ -89,20 +85,35 @@ def test_create_preferences_duplicate(authenticated_user):
         )
 
     assert response.status_code == 409
-    assert response.json()["message"] == "Preferences already exist for this user."
+    assert response.json()["message"] == (
+        "Preferences already exist. Use PUT to update them."
+    )
+
 
 def test_update_preferences(authenticated_user):
-    existing_preferences = {
-        "user_id": "507f1f77bcf86cd799439011",
-        "liked_flavors": ["spicy"],
-    }
+    updated_preferences = {
+    "_id": "507f1f77bcf86cd799439012",
+    "user_id": "507f1f77bcf86cd799439011",
+    "liked_flavors": ["spicy", "sweet"],
+    "liked_foods": ["pizza"],
+    "disliked_flavors": [],
+    "disliked_foods": [],
+    "cuisines": ["Japanese"],
+    "dietary": ["high-protein"],
+    "allergies": [],
+    "tried_dishes": [
+        {
+            "name": "Sushi",
+            "rating": 4,
+        }
+    ],
+    "created_at": datetime.now(timezone.utc),
+    "updated_at": datetime.now(timezone.utc),
+}
 
     with patch(
-        "app.api.preferences.preferences_collection.find_one",
-        new=AsyncMock(return_value=existing_preferences),
-    ), patch(
-        "app.api.preferences.preferences_collection.update_one",
-        new=AsyncMock(),
+        "app.services.preference_service.preferences_collection.find_one_and_update",
+        new=AsyncMock(return_value=updated_preferences),
     ):
         response = client.put(
             "/api/preferences",
@@ -133,21 +144,24 @@ def test_update_preferences(authenticated_user):
     assert data["triedDishes"][0]["name"] == "Sushi"
     assert data["triedDishes"][0]["rating"] == 4
 
+
 def test_delete_preferences(authenticated_user):
     with patch(
-        "app.api.preferences.preferences_collection.delete_one",
-        new=AsyncMock(return_value=type("Result", (), {"deleted_count": 1})()),
+        "app.services.preference_service.preferences_collection.delete_one",
+        new=AsyncMock(),
     ):
         response = client.delete("/api/preferences")
 
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json()["message"] == "Preferences reset."
 
-def test_delete_preferences_not_found(authenticated_user):
+
+def test_delete_preferences_when_not_found(authenticated_user):
     with patch(
-        "app.api.preferences.preferences_collection.delete_one",
-        new=AsyncMock(return_value=type("Result", (), {"deleted_count": 0})()),
+        "app.services.preference_service.preferences_collection.delete_one",
+        new=AsyncMock(),
     ):
         response = client.delete("/api/preferences")
 
-    assert response.status_code == 404
-    assert response.json()["message"] == "Preferences not found for this user."
+    assert response.status_code == 200
+    assert response.json()["message"] == "Preferences reset."
