@@ -13,7 +13,6 @@ import { registerRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 
 type FieldErrors = {
-  username?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
@@ -24,7 +23,6 @@ export default function RegisterPage() {
   const router = useRouter();
   const { setUser } = useAuth();
 
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -36,12 +34,6 @@ export default function RegisterPage() {
 
   function validate() {
     const errors: FieldErrors = {};
-
-    if (!username.trim()) errors.username = "Username is required.";
-    else if (username.trim().length < 3)
-      errors.username = "Username must be at least 3 characters.";
-    else if (!/^[a-zA-Z0-9_]+$/.test(username.trim()))
-      errors.username = "Letters, numbers, and underscores only.";
 
     if (!email.trim()) errors.email = "Email is required.";
     else if (!isValidEmail(email)) errors.email = "Enter a valid email address.";
@@ -74,7 +66,7 @@ export default function RegisterPage() {
 
     setIsSubmitting(true);
     try {
-      const { user } = await registerRequest({ username, email, password, acceptedTerms });
+      const { user } = await registerRequest({ email, password, acceptedTerms });
       setUser(user); // signed in right away: the header switches to the signed-in view
 
       router.push("/preferences");
@@ -113,17 +105,6 @@ export default function RegisterPage() {
               {formError}
             </div>
           )}
-
-          <AuthInput
-            label="Username"
-            type="text"
-            name="username"
-            placeholder="yourusername"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            error={fieldErrors.username}
-            autoComplete="username"
-          />
 
           <AuthInput
             label="Email"

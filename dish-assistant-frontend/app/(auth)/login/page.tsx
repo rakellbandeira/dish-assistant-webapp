@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import Link from "next/link";
 import SiteHeader from "@/components/layouts/SiteHeader";
 import AuthInput from "@/components/auth/AuthInput";
@@ -9,33 +9,44 @@ import Button from "@/components/ui/Button";
 import { loginRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 
-const REMEMBERED_USERNAME_KEY = "dish-assistant:remembered-username";
+const REMEMBERED_EMAIL_KEY = "dish-assistant:remembered-email";
+
+function getRememberedEmail(): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  return window.localStorage.getItem(REMEMBERED_EMAIL_KEY) ?? "";
+}
 
 export default function LoginPage() {
   const { setUser } = useAuth();
-  const [username, setUsername] = useState("");
+
+  const [email, setEmail] = useState(getRememberedEmail);
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() =>
+    Boolean(getRememberedEmail())
+  );
 
   const [fieldErrors, setFieldErrors] = useState<{
-    username?: string;
+    email?: string;
     password?: string;
   }>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const remembered = window.localStorage.getItem(REMEMBERED_USERNAME_KEY);
-    if (remembered) {
-      setUsername(remembered);
-      setRememberMe(true);
-    }
-  }, []);
-
   function validate() {
     const errors: typeof fieldErrors = {};
-    if (!username.trim()) errors.username = "Username is required.";
-    if (!password) errors.password = "Password is required.";
+
+    if (!email.trim()) {
+      errors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "Please enter a valid email address.";
+    }
+
+    if (!password) {
+      errors.password = "Password is required.";
+    }
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -48,21 +59,26 @@ export default function LoginPage() {
     if (!validate()) return;
 
     setIsSubmitting(true);
+
     try {
-      const { user } = await loginRequest({ username, password, rememberMe });
-      setUser(user); // the header switches to the signed-in view
+      const { user } = await loginRequest({
+        email,
+        password,
+        rememberMe,
+      });
+
+      setUser(user);
 
       if (rememberMe) {
-        window.localStorage.setItem(REMEMBERED_USERNAME_KEY, username);
+        window.localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
       } else {
-        window.localStorage.removeItem(REMEMBERED_USERNAME_KEY);
+        window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
       }
-      
     } catch (err) {
       setFormError(
         err instanceof Error
           ? err.message
-          : "That username and password don't match. Try again."
+          : "That email and password don't match. Try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -77,6 +93,7 @@ export default function LoginPage() {
         <h1 className="font-heading text-3xl sm:text-4xl text-error mb-2 text-center">
           Welcome back
         </h1>
+
         <p className="text-secondary text-sm mb-8 sm:mb-10 text-center max-w-sm">
           Sign in to pick up your saved preferences and recommendations.
         </p>
@@ -96,15 +113,16 @@ export default function LoginPage() {
           )}
 
           <AuthInput
-            label="Username"
-            type="text"
-            name="username"
-            placeholder="yourusername"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            error={fieldErrors.username}
-            autoComplete="username"
+            label="Email"
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            error={fieldErrors.email}
+            autoComplete="email"
           />
+
           <AuthInput
             label="Password"
             type="password"
@@ -123,12 +141,20 @@ export default function LoginPage() {
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
             />
-            <Link href="/forgot-password" className="text-xs text-secondary shrink-0">
+
+            <Link
+              href="/forgot-password"
+              className="text-xs text-secondary shrink-0"
+            >
               Forgot password?
             </Link>
           </div>
 
-          <Button type="submit" className="w-full mt-2" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            className="w-full mt-2"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Signing in…" : "Sign in"}
           </Button>
         </form>
