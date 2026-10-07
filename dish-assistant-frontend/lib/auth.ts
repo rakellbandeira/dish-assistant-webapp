@@ -10,6 +10,7 @@ type LoginPayload = {
 };
 
 type RegisterPayload = {
+  username: string;
   email: string;
   password: string;
   acceptedTerms: boolean;
