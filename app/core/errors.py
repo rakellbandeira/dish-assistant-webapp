@@ -1,12 +1,4 @@
-"""Exception handlers that give every error response the same shape.
-
-    {"message": "Human readable text"}
-    {"message": "Invalid input.", "errors": [{"field": "password", "message": "..."}]}   (422 only)
-
-The frontend reads (await res.json()).message; see docs/auth-contract.md.
-"""
 import logging
-
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -16,9 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class AIServiceError(Exception):
-    """Raised when the AI (Gemini) can't give us a usable answer.
-
-    503 = temporarily unavailable, try again · 502 = bad answer from the AI · 504 = too slow
+    """Raised when the AI (Gemini) can't give a usable answer.
     """
 
     def __init__(self, message: str, status_code: int = status.HTTP_503_SERVICE_UNAVAILABLE):
@@ -46,22 +36,21 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         # loc looks like ("body", "password"); the frontend only needs the field name
         location = [str(part) for part in error.get("loc", ()) if part != "body"]
         text = error.get("msg", "Invalid value.")
-        # Pydantic prefixes messages from our own ValueErrors with "Value error, "
-        text = text.removeprefix("Value error, ")
+         text = text.removeprefix("Value error, ")
         field = ".".join(location) or None
-        # "Field required" alone doesn't say which field; name it
+        
         if error.get("type") == "missing" and field:
             text = f"{field} is required."
         errors.append({"field": field, "message": text})
 
     return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content={"message": errors[0]["message"] if len(errors) == 1 else "Invalid input.", "errors": errors},
     )
 
 
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    # Log the real error, but never leak internals to the client
+    
     logger.exception("Unhandled error on %s %s", request.method, request.url.path)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
