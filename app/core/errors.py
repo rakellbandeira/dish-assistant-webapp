@@ -48,7 +48,11 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         text = error.get("msg", "Invalid value.")
         # Pydantic prefixes messages from our own ValueErrors with "Value error, "
         text = text.removeprefix("Value error, ")
-        errors.append({"field": ".".join(location) or None, "message": text})
+        field = ".".join(location) or None
+        # "Field required" alone doesn't say which field; name it
+        if error.get("type") == "missing" and field:
+            text = f"{field} is required."
+        errors.append({"field": field, "message": text})
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

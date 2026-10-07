@@ -122,7 +122,7 @@ same rules so users get instant feedback.
 | `username` | 3–30 characters; letters, numbers, `_` and `-` only | Leading/trailing spaces trimmed. Unique, **case-insensitive** (`Ana` and `ana` count as taken by each other). |
 | `password` (register) | At least **8 characters**, plus at least one of: an **uppercase letter**, a **number** or a **symbol**; at most **72 bytes** | Same rule as the frontend strength meter (score ≥ 2 in `lib/validation.ts`). 72 bytes is bcrypt's limit; accented letters and emoji use 2–4 bytes each. |
 | `password` (login) | Not empty | No strength rules on login |
-| `accepted_terms` | Must be `true` | Backend records the time in `terms_accepted_at` |
+| `acceptedTerms` | Must be `true` | Backend records the time in `terms_accepted_at` |
 
 ## 6. Endpoints
 
@@ -136,7 +136,7 @@ Request:
   "email": "Ana.Silva@Example.com",
   "username": "ana_silva",
   "password": "Tacos4ever",
-  "accepted_terms": true
+  "acceptedTerms": true
 }
 ```
 

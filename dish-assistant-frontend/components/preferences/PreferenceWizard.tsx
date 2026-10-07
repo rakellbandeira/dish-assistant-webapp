@@ -95,8 +95,9 @@ export default function PreferenceWizard({ initial, mode, startStep = 0, onSaved
       const cleaned = cleanPreferences(prefs);
       await savePreferences(cleaned);
       onSaved(cleaned);
-    } catch {
-      setSaveError("We couldn't save your preferences. Please try again.");
+    } catch (err) {
+      // Show the backend's message (e.g. "Not authenticated.") when there is one
+      setSaveError(err instanceof Error ? err.message : "We couldn't save your preferences. Please try again.");
     } finally {
       setSaving(false);
     }

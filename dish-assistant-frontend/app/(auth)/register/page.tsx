@@ -10,9 +10,9 @@ import Checkbox from "@/components/ui/Checkbox";
 import Button from "@/components/ui/Button";
 import { isValidEmail, getPasswordStrength } from "@/lib/validation";
 import { registerRequest } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
 
 type FieldErrors = {
-  username?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
@@ -21,8 +21,8 @@ type FieldErrors = {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { setUser } = useAuth();
 
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -34,12 +34,6 @@ export default function RegisterPage() {
 
   function validate() {
     const errors: FieldErrors = {};
-
-    if (!username.trim()) errors.username = "Username is required.";
-    else if (username.trim().length < 3)
-      errors.username = "Username must be at least 3 characters.";
-    else if (!/^[a-zA-Z0-9_]+$/.test(username.trim()))
-      errors.username = "Letters, numbers, and underscores only.";
 
     if (!email.trim()) errors.email = "Email is required.";
     else if (!isValidEmail(email)) errors.email = "Enter a valid email address.";
@@ -72,7 +66,8 @@ export default function RegisterPage() {
 
     setIsSubmitting(true);
     try {
-      await registerRequest({ username, email, password });
+      const { user } = await registerRequest({ email, password, acceptedTerms });
+      setUser(user); // signed in right away: the header switches to the signed-in view
 
       router.push("/preferences");
     } catch (err) {
@@ -87,7 +82,7 @@ export default function RegisterPage() {
 
   return (
     <main className="min-h-screen bg-neutral font-body">
-      <SiteHeader isLoggedIn={false} />
+      <SiteHeader />
 
       <section className="flex flex-col items-center px-6 py-12 sm:py-16 md:py-20">
         <h1 className="font-heading text-3xl sm:text-4xl text-error mb-2 text-center">
@@ -110,17 +105,6 @@ export default function RegisterPage() {
               {formError}
             </div>
           )}
-
-          <AuthInput
-            label="Username"
-            type="text"
-            name="username"
-            placeholder="yourusername"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            error={fieldErrors.username}
-            autoComplete="username"
-          />
 
           <AuthInput
             label="Email"

@@ -1,15 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { CircleCheck, Pencil } from "lucide-react";
 import SiteHeader from "@/components/layouts/SiteHeader";
 import Button from "@/components/ui/Button";
 import PreferenceWizard from "@/components/preferences/PreferenceWizard";
 import PreferenceSummary from "@/components/preferences/PreferenceSummary";
+import FieldError from "@/components/preferences/FieldError";
+import { ApiError } from "@/lib/api";
 import { EMPTY_PREFERENCES, Preferences, loadPreferences } from "@/lib/preferences";
 
 type View =
   | { kind: "loading" }
+  | { kind: "error"; message: string; signInNeeded: boolean }
   | { kind: "setup" }
   | { kind: "summary" }
   | { kind: "edit"; startStep: number };
@@ -20,13 +24,23 @@ export default function PreferencesPage() {
   const [justSaved, setJustSaved] = useState(false);
 
   useEffect(() => {
-    const saved = loadPreferences();
-    if (saved) {
-      setPrefs(saved);
-      setView({ kind: "summary" });
-    } else {
-      setView({ kind: "setup" });
-    }
+    loadPreferences()
+      .then((saved) => {
+        if (saved) {
+          setPrefs(saved);
+          setView({ kind: "summary" });
+        } else {
+          setView({ kind: "setup" });
+        }
+      })
+      .catch((err) => {
+        const signInNeeded = err instanceof ApiError && err.status === 401;
+        setView({
+          kind: "error",
+          signInNeeded,
+          message: signInNeeded ? "Please sign in to see your preferences." : err.message,
+        });
+      });
   }, []);
 
   function handleSaved(next: Preferences) {
@@ -37,11 +51,21 @@ export default function PreferencesPage() {
 
   return (
     <div className="min-h-screen bg-neutral font-body">
-      {/* TODO: derive isLoggedIn from real session state */}
-      <SiteHeader isLoggedIn />
+      <SiteHeader />
 
       <main className="mx-auto w-full max-w-2xl px-6 py-10 sm:py-14">
         {view.kind === "loading" && <p className="text-center text-sm text-secondary">Loading your preferences…</p>}
+
+        {view.kind === "error" && (
+          <div className="mx-auto flex max-w-sm flex-col items-center gap-4 text-center">
+            <FieldError>{view.message}</FieldError>
+            {view.signInNeeded && (
+              <Link href="/login" className="text-sm font-medium text-primary">
+                Go to sign in
+              </Link>
+            )}
+          </div>
+        )}
 
         {view.kind === "setup" && (
           <>

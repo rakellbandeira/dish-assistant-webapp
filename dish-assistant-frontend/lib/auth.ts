@@ -1,15 +1,18 @@
 const TOKEN_KEY = "dish_assistant_token";
 
+// The signed-in user, as returned by the backend (register, login, /api/auth/me)
+export type AuthUser = { id: string; email: string; username: string };
+
 type LoginPayload = {
-  username: string;
+  email: string;
   password: string;
   rememberMe: boolean;
 };
 
 type RegisterPayload = {
-  username: string;
   email: string;
   password: string;
+  acceptedTerms: boolean;
 };
 
 export function setToken(token: string, remember: boolean = false): void {
@@ -36,7 +39,9 @@ export function isAuthenticated(): boolean {
   return getToken() !== null;
 }
 
-export async function loginRequest(payload: LoginPayload) {
+export async function loginRequest(
+  payload: LoginPayload
+): Promise<{ user: AuthUser }> {
   const res = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -46,13 +51,17 @@ export async function loginRequest(payload: LoginPayload) {
 
   if (!res.ok) {
     const data = await res.json().catch(() => null);
-    throw new Error(data?.message ?? "That username/email and password don't match.");
+
+    throw new Error(
+      data?.message ?? "That email and password don't match."
+    );
   }
 
   return res.json();
 }
 
-export async function registerRequest(payload: RegisterPayload) {
+
+export async function registerRequest(payload: RegisterPayload): Promise<{ user: AuthUser }> {
   const res = await fetch("/api/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

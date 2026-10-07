@@ -3,7 +3,7 @@
     "bsonType": "object",
     "title": "Menu Schema",
     "description": "Validation schema for the menus collection - restaurant menus uploaded by users",
-    "required": ["_id", "user_id", "menu_text", "created_at"],
+    "required": ["_id", "user_id", "menu_text", "restaurant_place", "created_at"],
     "properties": {
       "_id": {
         "bsonType": "objectId",

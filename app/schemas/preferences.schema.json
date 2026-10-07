@@ -2,8 +2,8 @@
   "$jsonSchema": {
     "bsonType": "object",
     "title": "Preferences Schema",
-    "description": "Validation schema for the preferences collection",
-    "required": ["_id", "user_id"],
+    "description": "Validation schema for the preferences collection (one document per user, same fields as the frontend preference form)",
+    "required": ["_id", "user_id", "created_at", "updated_at"],
     "properties": {
       "_id": {
         "bsonType": "objectId",
@@ -13,93 +13,62 @@
         "bsonType": "objectId",
         "description": "Reference to user._id (one-to-one relationship)"
       },
-      "liked_cuisines": {
-        "bsonType": "array",
-        "items": {
-          "bsonType": "string"
-        },
-        "description": "Array of cuisines user likes (updated based on feedback)",
-        "examples": ["Italian", "Thai", "Japanese"]
-      },
-      "disliked_cuisines": {
-        "bsonType": "array",
-        "items": {
-          "bsonType": "string"
-        },
-        "description": "Array of cuisines user dislikes (updated based on feedback)",
-        "examples": ["Fast Food", "Soul Food"]
-      },
       "liked_flavors": {
         "bsonType": "array",
-        "items": {
-          "bsonType": "object",
-          "properties": {
-            "flavor": {
-              "bsonType": "string",
-              "enum": ["spicy", "sweet", "salty", "sour", "umami", "bitter"]
-            },
-            "intensity": {
-              "bsonType": "string",
-              "enum": ["mild", "moderate", "strong"]
-            }
-          },
-          "required": ["flavor"],
-          "additionalProperties": false
-        },
-        "description": "Flavors user enjoys with preferred intensity"
+        "maxItems": 30,
+        "items": { "bsonType": "string", "maxLength": 50 },
+        "description": "Flavors the user enjoys, e.g. Spicy, Umami"
       },
-      "disliked_ingredients": {
+      "liked_foods": {
         "bsonType": "array",
-        "items": {
-          "bsonType": "object",
-          "properties": {
-            "ingredient": {
-              "bsonType": "string"
-            },
-            "reason": {
-              "bsonType": "string"
-            }
-          },
-          "required": ["ingredient"],
-          "additionalProperties": false
-        },
-        "description": "Ingredients user wants to avoid with optional reason"
+        "maxItems": 30,
+        "items": { "bsonType": "string", "maxLength": 50 },
+        "description": "Foods/ingredients the user enjoys, e.g. Chicken, Rice"
+      },
+      "disliked_flavors": {
+        "bsonType": "array",
+        "maxItems": 30,
+        "items": { "bsonType": "string", "maxLength": 50 },
+        "description": "Flavors the user wants to avoid"
+      },
+      "disliked_foods": {
+        "bsonType": "array",
+        "maxItems": 30,
+        "items": { "bsonType": "string", "maxLength": 50 },
+        "description": "Foods/ingredients the user wants to avoid"
+      },
+      "cuisines": {
+        "bsonType": "array",
+        "maxItems": 30,
+        "items": { "bsonType": "string", "maxLength": 50 },
+        "description": "Cuisines the user wants to see more of, e.g. Thai, Mexican"
+      },
+      "dietary": {
+        "bsonType": "array",
+        "maxItems": 30,
+        "items": { "bsonType": "string", "maxLength": 50 },
+        "description": "Dietary restrictions, e.g. Vegetarian, Gluten-free"
       },
       "allergies": {
         "bsonType": "array",
-        "items": {
-          "bsonType": "object",
-          "properties": {
-            "allergen": {
-              "bsonType": "string"
-            },
-            "severity": {
-              "bsonType": "string",
-              "enum": ["mild", "moderate", "severe"]
-            }
-          },
-          "required": ["allergen", "severity"],
-          "additionalProperties": false
-        },
-        "description": "Food allergies with severity level"
+        "maxItems": 30,
+        "items": { "bsonType": "string", "maxLength": 50 },
+        "description": "Food allergies (free text), e.g. Peanuts, Shellfish"
       },
-      "dietary_restrictions": {
+      "tried_dishes": {
         "bsonType": "array",
+        "maxItems": 50,
         "items": {
           "bsonType": "object",
+          "required": ["name", "rating"],
           "properties": {
-            "restriction": {
-              "bsonType": "string",
-              "enum": ["vegetarian", "vegan", "gluten-free", "kosher", "halal", "keto", "paleo", "dairy-free"]
-            },
-            "notes": {
-              "bsonType": "string"
-            }
+            "id": { "bsonType": ["string", "null"], "description": "Row id from the frontend form" },
+            "name": { "bsonType": "string", "minLength": 1, "maxLength": 200 },
+            "rating": { "bsonType": "int", "minimum": 1, "maximum": 5, "description": "1 = disliked ... 5 = loved" }
           },
-          "required": ["restriction"],
           "additionalProperties": false
         },
-        "description": "Dietary restrictions with optional notes"
+        "description": "Dishes the user has tried, with a 1-5 rating"
       },
       "created_at": {
         "bsonType": "date",
@@ -115,11 +84,7 @@
   "indexes": [
     {
       "key": { "user_id": 1 },
-      "unique": true,
-      "sparse": true
-    },
-    {
-      "key": { "updated_at": -1 }
+      "unique": true
     }
   ]
 }
