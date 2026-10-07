@@ -10,6 +10,7 @@ import PreferenceSummary from "@/components/preferences/PreferenceSummary";
 import FieldError from "@/components/preferences/FieldError";
 import { ApiError } from "@/lib/api";
 import { EMPTY_PREFERENCES, Preferences, loadPreferences } from "@/lib/preferences";
+import Breadcrumb from "@/components/layouts/Breadcrumb";
 
 type View =
   | { kind: "loading" }
@@ -54,6 +55,7 @@ export default function PreferencesPage() {
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-2xl px-6 py-10 sm:py-14">
+        <Breadcrumb current="Preferences" />
         {view.kind === "loading" && <p className="text-center text-sm text-secondary">Loading your preferences…</p>}
 
         {view.kind === "error" && (

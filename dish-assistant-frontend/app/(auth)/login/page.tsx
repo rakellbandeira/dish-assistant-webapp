@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import SiteHeader from "@/components/layouts/SiteHeader";
 import AuthInput from "@/components/auth/AuthInput";
 import Checkbox from "@/components/ui/Checkbox";
@@ -21,6 +22,7 @@ function getRememberedEmail(): string {
 
 export default function LoginPage() {
   const { setUser } = useAuth();
+  const router = useRouter();
 
   const [email, setEmail] = useState(getRememberedEmail);
   const [password, setPassword] = useState("");
@@ -74,6 +76,8 @@ export default function LoginPage() {
       } else {
         window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
       }
+
+      router.replace("/");
     } catch (err) {
       setFormError(
         err instanceof Error
