@@ -36,7 +36,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         # loc looks like ("body", "password"); the frontend only needs the field name
         location = [str(part) for part in error.get("loc", ()) if part != "body"]
         text = error.get("msg", "Invalid value.")
-         text = text.removeprefix("Value error, ")
+        text = text.removeprefix("Value error, ")
         field = ".".join(location) or None
         
         if error.get("type") == "missing" and field:
