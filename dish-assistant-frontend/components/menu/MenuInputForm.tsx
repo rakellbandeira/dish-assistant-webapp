@@ -12,7 +12,7 @@ type MenuInputFormProps = {
 
 type FieldErrors = { restaurantPlace?: string; menuText?: string };
 
-// Shared look for the three fields inside the box: no own border, the box draws it
+// Shared look for the three fields inside the box
 const fieldClass = "w-full bg-transparent px-4 text-sm text-error placeholder:text-secondary/60 focus:outline-none";
 
 export default function MenuInputForm({ isLoading, onSubmit }: MenuInputFormProps) {
@@ -62,9 +62,9 @@ export default function MenuInputForm({ isLoading, onSubmit }: MenuInputFormProp
             className={`${fieldClass} h-12 ${errors.restaurantPlace ? "placeholder:text-error/70" : ""}`}
           />
           <input
-            aria-label="Restaurant name (optional)"
+            aria-label="Restaurant name"
             name="restaurantName"
-            placeholder="Restaurant name (optional)"
+            placeholder="Restaurant name"
             maxLength={200}
             value={restaurantName}
             onChange={(e) => setRestaurantName(e.target.value)}
@@ -76,9 +76,9 @@ export default function MenuInputForm({ isLoading, onSubmit }: MenuInputFormProp
           aria-label="Menu"
           aria-invalid={Boolean(errors.menuText)}
           name="menuText"
-          rows={7}
+          rows={4}
           maxLength={MENU_MAX_LENGTH}
-          placeholder={"Menu: insert a list of dishes you want suggestions for\nExample:.\nTortellini in Brodo\nLasagna Bolognese\nPolpette in Umido dell'Orsa\nAffettati Misti"}
+          placeholder={"The menu: bring a list of dishes you want suggestions for. \n(E.g.: Tortellini in Brodo\nLasagna Bolognese\nPolpette in Umido dell'Orsa\nAffettati Misti)"}
           value={menuText}
           onChange={(e) => setMenuText(e.target.value)}
           className={`${fieldClass} block resize-y py-3`}

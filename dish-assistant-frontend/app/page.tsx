@@ -13,8 +13,8 @@ export default function Home() {
           Find your next favorite dish
         </h1>
 
-        <p className="mt-4 mb-10 max-w-md text-center text-base text-secondary">
-          Paste a restaurant&apos;s menu and we&apos;ll suggest dishes you&apos;ll love, plus a few new ones worth trying.
+        <p className="mt-10 mb-6 max-w-lg text-center text-base text-secondary">
+          Give me your restaurant&apos;s menu and get dish suggestions made just for you.
         </p>
 
         <MenuRecommender />
