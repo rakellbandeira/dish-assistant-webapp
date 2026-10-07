@@ -4,8 +4,12 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Development-only fallback; production refuses to start with it (see Settings.validate)
+
 DEFAULT_SECRET_KEY = "change-me-in-production-dev-only-key"
+
+
+def _csv(name: str, default: str) -> list[str]:
+    return [item.strip() for item in os.getenv(name, default).split(",") if item.strip()]
 
 class Settings:
 
@@ -42,23 +46,19 @@ class Settings:
     cookie_secure: bool = os.getenv("COOKIE_SECURE", "false").lower() == "true"
     cookie_samesite: str = os.getenv("COOKIE_SAMESITE", "lax")
 
-    # CORS Configuration
-    cors_origins: list = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001").split(",")
+    cors_origins: list = _csv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001")
     cors_allow_credentials: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "true").lower() == "true"
-    cors_allow_methods: list = os.getenv("CORS_ALLOW_METHODS", "*").split(",")
-    cors_allow_headers: list = os.getenv("CORS_ALLOW_HEADERS", "*").split(",")
+    cors_allow_methods: list = _csv("CORS_ALLOW_METHODS", "GET,POST,PUT,DELETE")
+    cors_allow_headers: list = _csv("CORS_ALLOW_HEADERS", "Content-Type")
     
     # Google Gemini API
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
-    gemini_model: str = os.getenv("GEMINI_MODEL") or "gemini-3.8-flash"
-    # Used once when the main model is overloaded (503) or rate-limited (429); set to the main model to disable
-    gemini_fallback_model: str = os.getenv("GEMINI_FALLBACK_MODEL") or "gemini-3.5-flash"
-    # Max seconds to wait for one Gemini answer (newer "thinking" models can take 20-30s)
+    gemini_model: str = os.getenv("GEMINI_MODEL") or "gemini-3.5-flash-lite"
+    gemini_fallback_model: str = os.getenv("GEMINI_FALLBACK_MODEL") or "gemini-3.1-flash-lite"
     gemini_timeout_seconds: int = int(os.getenv("GEMINI_TIMEOUT_SECONDS") or "60")
-    # Total tries (first call + retries) for rate limits and temporary Gemini errors
     gemini_max_attempts: int = int(os.getenv("GEMINI_MAX_ATTEMPTS") or "3")
     
-    # Logging
+    
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
     log_file: str = os.getenv("LOG_FILE", "logs/app.log")
     
@@ -77,6 +77,13 @@ class Settings:
                 )
             if not self.cookie_secure:
                 raise RuntimeError("COOKIE_SECURE must be true in production.")
+            
+            unsafe = [o for o in self.cors_origins if o == "*" or "localhost" in o or "127.0.0.1" in o]
+            if unsafe:
+                raise RuntimeError(
+                    f"CORS_ORIGINS has development or wildcard origins in production: {unsafe}. "
+                    "Set it to the frontend's URL (e.g. https://dish-assistant.example.com), or leave it empty."
+                )
 
 
 # Create settings instance
