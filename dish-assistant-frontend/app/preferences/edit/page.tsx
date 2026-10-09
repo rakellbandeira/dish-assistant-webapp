@@ -9,9 +9,13 @@ import Button from "@/components/ui/Button";
 import PreferenceWizard from "@/components/preferences/PreferenceWizard";
 import PreferenceSummary from "@/components/preferences/PreferenceSummary";
 import { Preferences, loadPreferences } from "@/lib/preferences";
+import FieldError from "@/components/preferences/FieldError";
+import { ApiError } from "@/lib/api";
+import Link from "next/link";
 
 type View =
   | { kind: "loading" }
+  | { kind: "error"; message: string; signInNeeded: boolean }
   | { kind: "summary"; prefs: Preferences }
   | { kind: "edit"; prefs: Preferences; startStep: number };
 
@@ -19,20 +23,33 @@ function PreferencesContent() {
   const router = useRouter();
   const [view, setView] = useState<View>({ kind: "loading" });
   const [justSaved, setJustSaved] = useState(false);
+  
 
   useEffect(() => {
   async function load() {
-    const saved = await loadPreferences();
+    try {
+      const saved = await loadPreferences();
 
-    if (saved) {
-      setView({ kind: "summary", prefs: saved });
-    } else {
-      router.replace("/onboarding");
+      if (saved) {
+        setView({ kind: "summary", prefs: saved });
+      } else {
+        router.replace("/preferences");
+      }
+    } catch (err) {
+      console.error("Failed to load preferences:", err);
+      const signInNeeded = err instanceof ApiError && err.status === 401;
+      setView({
+        kind: "error",
+        signInNeeded,
+        message: signInNeeded
+          ? "Your session expired. Please sign in again."
+          : "Couldn't load your preferences. Please try again.",
+      });
     }
   }
 
   load();
-  }, [router]);
+}, [router]);
 
   function handleSaved(next: Preferences) {
     setJustSaved(true);
@@ -47,6 +64,18 @@ function PreferencesContent() {
         {view.kind === "loading" && (
           <p className="text-center text-sm text-secondary">Loading your preferences…</p>
         )}
+
+        {view.kind === "error" && (
+            <div className="mx-auto flex max-w-sm flex-col items-center gap-4 text-center">
+            <FieldError>{view.message}</FieldError>
+            {view.signInNeeded && (
+              <Link href="/login" className="text-sm font-medium text-primary">
+                Go to sign in
+              </Link>
+            )}
+          </div>
+        )}
+          
 
         {view.kind === "summary" && (
           <>
