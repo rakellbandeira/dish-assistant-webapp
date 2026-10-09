@@ -24,9 +24,10 @@ export default function SiteHeader() {
             <Link
               href="/profile"
               aria-label="Your profile"
-              className="text-secondary hover:text-primary"
+              className="flex items-center gap-2 text-secondary hover:text-primary"
             >
               <CircleUserRound size={24} />
+              <span className="max-w-[10rem] truncate pr-6">{user.username}</span>
             </Link>
             <button
               type="button"
