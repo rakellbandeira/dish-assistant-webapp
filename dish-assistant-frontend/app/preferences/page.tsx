@@ -55,7 +55,7 @@ export default function PreferencesPage() {
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-2xl px-6 py-10 sm:py-14">
-        <Breadcrumb current="Preferences" />
+        <Breadcrumb current="Preferences" parents={[{ label: "Profile", href: "/profile" }]} />
         {view.kind === "loading" && <p className="text-center text-sm text-secondary">Loading your preferences…</p>}
 
         {view.kind === "error" && (

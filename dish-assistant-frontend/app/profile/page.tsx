@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronRight, Pencil, ShieldAlert } from "lucide-react";
 import SiteHeader from "@/components/layouts/SiteHeader";
+import Breadcrumb from "@/components/layouts/Breadcrumb";
 import RequireAuth from "@/components/auth/RequireAuth";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
@@ -44,6 +45,8 @@ function ProfileContent() {
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-2xl px-6 py-10 sm:py-14">
+        <Breadcrumb current="Profile" />
+
         <h1 className="mb-8 font-heading text-3xl text-error sm:text-4xl">
           Your profile
         </h1>
@@ -76,7 +79,7 @@ function ProfileContent() {
 
             {prefs && (
               <Link
-                href="/preferences/edit"
+                href="/preferences"
                 className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-secondary hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 View and edit
@@ -96,7 +99,7 @@ function ProfileContent() {
                 recommendations match your taste.
               </p>
 
-              <Link href="/preferences/edit">
+              <Link href="/preferences">
                 <Button>
                   Set up preferences
                 </Button>
@@ -149,7 +152,7 @@ function ProfileContent() {
               )}
 
               <div className="flex justify-end border-t border-secondary/10 pt-4">
-                <Link href="/preferences/edit">
+                <Link href="/preferences">
                   <Button>
                     <span className="flex items-center gap-2">
                       <Pencil size={14} />
