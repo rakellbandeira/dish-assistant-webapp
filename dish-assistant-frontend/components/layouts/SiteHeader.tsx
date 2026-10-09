@@ -11,7 +11,7 @@ export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close the account menu on an outside click or Escape
+  
   useEffect(() => {
     if (!menuOpen) return;
     const onMouseDown = (e: MouseEvent) => {
@@ -39,7 +39,7 @@ export default function SiteHeader() {
       </Link>
 
       <div className="flex min-h-9 items-center gap-3 font-body text-sm">
-        {isLoading ? null : user ? ( // nothing while checking, so "Sign in" doesn't flash for signed-in users
+        {isLoading ? null : user ? ( 
           <>
             <div ref={menuRef} className="relative">
               <button
